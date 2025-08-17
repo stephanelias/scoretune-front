@@ -37,7 +37,7 @@ export default tseslint.config([
       ],
       'import/newline-after-import': ['warn', { count: 1 }],
       'import/no-duplicates': 'warn',
-      'import/prefer-default-export': 'off', // optional, depending on your coding style
+      'import/prefer-default-export': 'off',
     },
   },
 ])
