@@ -1,4 +1,7 @@
+/*noinspection CssUnknownAtRule,CssInvalidAtRule*/
 @import "tailwindcss";
+@import "preline/variants.css";
+@source "../node_modules/preline/dist/*.js";
 
 @theme {
   /* Colors */
@@ -140,26 +143,26 @@
     padding-right: calc((100vw + 16px - 640px) / 2);
   }
 
-    @media (width >= theme(--breakpoint-md)) {
-      padding-left: calc((100vw + 16px - 768px) / 2);
-      padding-right: calc((100vw + 16px - 768px) / 2);
-    }
+  @media (width >= theme(--breakpoint-md)) {
+    padding-left: calc((100vw + 16px - 768px) / 2);
+    padding-right: calc((100vw + 16px - 768px) / 2);
+  }
 
-      @media (width >= theme(--breakpoint-lg)) {
-        padding-left: calc((100vw + 16px - 1024px) / 2);
-        padding-right: calc((100vw + 16px - 1024px) / 2);
-      }
+  @media (width >= theme(--breakpoint-lg)) {
+    padding-left: calc((100vw + 16px - 1024px) / 2);
+    padding-right: calc((100vw + 16px - 1024px) / 2);
+  }
 
-        @media (width >= theme(--breakpoint-xl)) {
-          padding-left: calc((100vw + 16px - 1280px) / 2);
-          padding-right: calc((100vw + 16px - 1280px) / 2);
-        }
+  @media (width >= theme(--breakpoint-xl)) {
+    padding-left: calc((100vw + 16px - 1280px) / 2);
+    padding-right: calc((100vw + 16px - 1280px) / 2);
+  }
 
-          @media (width >= theme(--breakpoint-2xl)) {
-            padding-left: calc((100vw + 16px - 1536px) / 2);
-            padding-right: calc((100vw + 16px - 1536px) / 2);
-          }
-          }
+  @media (width >= theme(--breakpoint-2xl)) {
+    padding-left: calc((100vw + 16px - 1536px) / 2);
+    padding-right: calc((100vw + 16px - 1536px) / 2);
+  }
+}
 
-          @custom-variant mobile (@media (max-width: 767px));
+@custom-variant mobile (@media (max-width: 767px));
 
