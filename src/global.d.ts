@@ -1,8 +1,8 @@
 import type { DataTable } from 'datatables.net'
 import type { Dropzone } from 'dropzone'
-import type { VanillaCalendarPro } from 'vanilla-calendar-pro'
 import type { noUiSlider } from 'nouislider'
 import type { IStaticMethods } from 'preline/dist'
+import type { VanillaCalendarPro } from 'vanilla-calendar-pro'
 
 declare global {
   interface Window {

@@ -1,6 +1,9 @@
 import { useEffect } from 'react'
 import { useLocation } from 'react-router-dom'
-import "./index.css"
+
+import './index.css'
+import { AppRoutes } from './routes/AppRoutes'
+
 async function loadPreline() {
   return import('preline/dist/index.js')
 }
@@ -20,11 +23,7 @@ function App() {
     initPreline()
   }, [location.pathname])
 
-  return (
-    <div className="container">
-      <h1 className="text-neutral-500">Hello</h1>
-    </div>
-  )
+  return <AppRoutes />
 }
 
 export default App
