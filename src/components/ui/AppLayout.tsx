@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react'
+
 import Header from '../navigation/Header'
-import AppLogo from './AppLogo'
 import SideMenu from '../navigation/SideMenu'
+
+import AppLogo from './AppLogo'
 
 interface AppLayoutProps {
   title: string

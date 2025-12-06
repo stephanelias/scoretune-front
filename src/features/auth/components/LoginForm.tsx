@@ -1,9 +1,48 @@
 import { Link } from 'react-router-dom'
+import {useAuth} from "../../../core/contexts/AuthContext";
+import {ChangeEvent, FormEvent, useState} from "react";
+import {LoginFormValues, validateLogin} from "../../../core/utils/validator";
 
 export default function LoginForm() {
+  const [formValues, setFormValues] = useState<LoginFormValues>({
+    email: "",
+    password: "",
+  })
+  const [errors, setErrors] = useState<Partial<LoginFormValues>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const { login } = useAuth()
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFormValues({ ...formValues, [e.target.name]: e.target.value })
+  }
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault()
+
+    const validationErrors = validateLogin(formValues)
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors)
+      return
+    }
+
+    setErrors({})
+    setIsSubmitting(true)
+
+    try {
+      console.log(formValues)
+      login(formValues)
+    } catch (err) {
+      console.error(err)
+      setErrors({ password: "Email ou mot de passe incorrect" })
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <div className="mt-5">
-      <form>
+      <form onSubmit={handleSubmit}>
         <div className="grid gap-y-4">
           <div>
             <label htmlFor="email" className="block text-sm mb-2">
@@ -16,6 +55,8 @@ export default function LoginForm() {
                 name="email"
                 className="py-2.5 sm:py-3 px-4 block w-full border border-gray-200 rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
                 required
+                value={formValues.email}
+                onChange={handleChange}
                 aria-describedby="email-error"
               />
               <div className="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">
@@ -55,6 +96,8 @@ export default function LoginForm() {
                 name="password"
                 className="py-2.5 sm:py-3 px-4 block w-full border border-gray-200 rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
                 required
+                value={formValues.password}
+                onChange={handleChange}
                 aria-describedby="password-error"
               />
               <div className="hidden absolute inset-y-0 end-0 pointer-events-none pe-3">

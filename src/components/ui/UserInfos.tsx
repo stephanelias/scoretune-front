@@ -1,4 +1,8 @@
+import {useAuth} from "../../core/contexts/AuthContext";
+
 export default function UserInfos() {
+  const { user, logout } = useAuth()
+
   return (
     <div className="flex items-center sm:gap-x-1.5">
       <div className="h-8">
@@ -12,7 +16,7 @@ export default function UserInfos() {
             aria-label="Dropdown"
           >
             <div className="shrink-0 size-8 border border-gray-200 rounded-full bg-white text-dark flex items-center justify-center font-semibold">
-              S
+              {user?.fullName.charAt(0)}
             </div>
           </button>
 
@@ -23,8 +27,8 @@ export default function UserInfos() {
             aria-labelledby="hs-dnad"
           >
             <div className="py-2 px-3.5">
-              <span className="font-medium text-gray-800">James Collison</span>
-              <p className="text-sm text-gray-500">jamescollison@site.com</p>
+              <span className="font-medium text-gray-800">{user?.fullName}</span>
+              <p className="text-sm text-gray-500">{user?.email}</p>
             </div>
             <div className="p-1 border-t border-gray-200">
               <a
@@ -72,6 +76,7 @@ export default function UserInfos() {
               <a
                 className="flex items-center gap-x-3 py-2 px-3 rounded-lg text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50 disabled:pointer-events-none focus:outline-hidden focus:bg-gray-100"
                 href="#"
+                onClick={() => logout()}
               >
                 <svg
                   className="shrink-0 mt-0.5 size-4"

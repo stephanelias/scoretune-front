@@ -1,8 +1,8 @@
 import { Route, Routes } from 'react-router-dom'
 
-import HomePage from '../features/home/HomePage'
 import LoginPage from '../features/auth/LoginPage'
 import RegisterPage from '../features/auth/RegisterPage'
+import HomePage from '../features/home/HomePage'
 
 export const AppRoutes = () => (
   <Routes>

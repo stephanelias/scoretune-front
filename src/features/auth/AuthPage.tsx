@@ -1,5 +1,6 @@
-import Illustration from '../../assets/undraw_mello_uiud.svg'
 import type { ReactNode } from 'react'
+
+import Illustration from '../../assets/undraw_mello_uiud.svg'
 
 interface AuthPageProps {
   children: ReactNode
