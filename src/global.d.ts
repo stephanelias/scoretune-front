@@ -14,6 +14,15 @@ declare global {
     VanillaCalendarPro: typeof VanillaCalendarPro
     noUiSlider: typeof noUiSlider
     HSStaticMethods: IStaticMethods
+    HSOverlay: {
+      getInstance(
+        el: string | HTMLElement,
+        force?: boolean
+      ): {
+        open(): void
+        close(): void
+      } | null
+    }
   }
 }
 

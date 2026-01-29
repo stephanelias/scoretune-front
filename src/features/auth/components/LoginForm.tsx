@@ -1,40 +1,49 @@
+import { ChangeEvent, FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
-import {useAuth} from "../../../core/contexts/AuthContext";
-import {ChangeEvent, FormEvent, useState} from "react";
-import {LoginFormValues, validateLogin} from "../../../core/utils/validator";
+
+import { useAuth } from '../../../core/contexts/AuthContext'
+import { LoginFormValues, validateLogin } from '../../../core/utils/validator'
 
 export default function LoginForm() {
   const [formValues, setFormValues] = useState<LoginFormValues>({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
   })
-  const [errors, setErrors] = useState<Partial<LoginFormValues>>({})
+  const [apiError, setApiError] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { login } = useAuth()
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormValues({ ...formValues, [e.target.name]: e.target.value })
+    if (apiError) setApiError('')
   }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
 
     const validationErrors = validateLogin(formValues)
+
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors)
+      const errorMessages = Object.values(validationErrors).join(', ')
+      setApiError(errorMessages)
       return
     }
 
-    setErrors({})
+    setApiError('')
     setIsSubmitting(true)
 
     try {
-      console.log(formValues)
-      login(formValues)
+      await login(formValues)
     } catch (err) {
-      console.error(err)
-      setErrors({ password: "Email ou mot de passe incorrect" })
+      const error = err as { response?: { status?: number; data?: { message?: string } } }
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        setApiError('Email ou mot de passe incorrect')
+      } else if (error.response?.data?.message) {
+        setApiError(error.response.data.message)
+      } else {
+        setApiError('Une erreur est survenue lors de la connexion. Veuillez réessayer.')
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -44,6 +53,38 @@ export default function LoginForm() {
     <div className="mt-5">
       <form onSubmit={handleSubmit}>
         <div className="grid gap-y-4">
+          {/* Alerte d'erreur */}
+          {apiError && (
+            <div
+              className="bg-red-100 border border-red-200 text-sm text-red-800 rounded-lg p-4"
+              role="alert"
+            >
+              <div className="flex">
+                <div className="shrink-0">
+                  <svg
+                    className="size-4 mt-0.5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="m15 9-6 6"></path>
+                    <path d="m9 9 6 6"></path>
+                  </svg>
+                </div>
+                <div className="ms-3">
+                  <span className="font-bold">Erreur !</span> {apiError}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div>
             <label htmlFor="email" className="block text-sm mb-2">
               Adresse email
@@ -137,12 +178,15 @@ export default function LoginForm() {
           <button
             type="submit"
             className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
+            disabled={isSubmitting}
           >
-            <span
-              className="animate-spin inline-block size-4 border-3 border-current border-t-transparent text-white rounded-full"
-              role="status"
-              aria-label="loading"
-            ></span>
+            {isSubmitting && (
+              <span
+                className="animate-spin inline-block size-4 border-3 border-current border-t-transparent text-white rounded-full"
+                role="status"
+                aria-label="loading"
+              ></span>
+            )}
             Connexion
           </button>
           <p className="mt-2 text-sm text-gray-600">

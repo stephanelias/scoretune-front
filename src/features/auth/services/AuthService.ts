@@ -1,7 +1,7 @@
 import { api } from '../../../lib/axios'
 import type { LoginRequestDto } from '../models/LoginRequestDto'
+import { RegisterRequestDto } from '../models/RegisterRequestDto'
 import type { User } from '../models/User'
-import {RegisterRequestDto} from "../models/RegisterRequestDto";
 
 export async function login(data: LoginRequestDto) {
   const res = await api.post('/auth/login', data)

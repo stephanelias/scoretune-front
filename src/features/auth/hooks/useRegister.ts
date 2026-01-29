@@ -1,13 +1,11 @@
-import {useQuery} from "@tanstack/react-query/build/modern/index";
-import {getCurrentUser, login, register} from "../services/AuthService";
-import {User} from "../models/User";
-import {LoginResponseDto} from "../models/LoginResponseDto";
-import {LoginRequestDto} from "../models/LoginRequestDto";
-import {RegisterRequestDto} from "../models/RegisterRequestDto";
-import {useMutation} from "@tanstack/react-query";
+import { useMutation } from '@tanstack/react-query'
+
+import type { RegisterRequestDto } from '../models/RegisterRequestDto'
+import type { User } from '../models/User'
+import { register } from '../services/AuthService'
 
 export function useRegister() {
-    return useMutation<User, Error, RegisterRequestDto>({
-        mutationFn: register,
-    })
+  return useMutation<User, Error, RegisterRequestDto>({
+    mutationFn: register,
+  })
 }

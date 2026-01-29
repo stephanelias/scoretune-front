@@ -1,4 +1,4 @@
-import {useAuth} from "../../core/contexts/AuthContext";
+import { useAuth } from '../../core/contexts/AuthContext'
 
 export default function UserInfos() {
   const { user, logout } = useAuth()

@@ -1,17 +1,18 @@
-import {Link, useNavigate} from 'react-router-dom'
-import {ChangeEvent, FormEvent, useState} from "react";
-import {RegisterFormValues, validateRegistration} from "../../../core/utils/validator";
-import {useAuth} from "../../../core/contexts/AuthContext";
+import { ChangeEvent, FormEvent, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+
+import { useAuth } from '../../../core/contexts/AuthContext'
+import { RegisterFormValues, validateRegistration } from '../../../core/utils/validator'
 
 export default function RegisterForm() {
   const [formValues, setFormValues] = useState<RegisterFormValues>({
-    email: "",
-    fullName: "",
-    password: "",
-    confirmPassword: "",
+    email: '',
+    fullName: '',
+    password: '',
+    confirmPassword: '',
   })
 
-  const [errors, setErrors] = useState<Partial<RegisterFormValues>>({})
+  const [apiError, setApiError] = useState<string>('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { register } = useAuth()
@@ -19,26 +20,63 @@ export default function RegisterForm() {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFormValues({ ...formValues, [e.target.name]: e.target.value })
+    if (apiError) setApiError('')
+  }
+
+  const openSuccessModal = () => {
+    const modalElement = document.querySelector('#hs-custom-backdrop-modal')
+    if (modalElement) {
+      modalElement.classList.add('open', 'hs-overlay-open')
+      modalElement.classList.remove('pointer-events-none')
+      document.body.classList.add('hs-overlay-open')
+    }
+  }
+
+  const closeSuccessModal = () => {
+    const modalElement = document.querySelector('#hs-custom-backdrop-modal')
+    if (modalElement) {
+      modalElement.classList.remove('open', 'hs-overlay-open')
+      modalElement.classList.add('pointer-events-none')
+    }
+    document.body.classList.remove('hs-overlay-open')
+
+    const backdrop = document.getElementById('hs-custom-backdrop-modal-backdrop')
+    if (backdrop) {
+      backdrop.remove()
+    }
+  }
+
+  const handleSuccessModalClose = () => {
+    closeSuccessModal()
+    navigate('/auth/login')
   }
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
 
     const validationErrors = validateRegistration(formValues)
-    console.log("VALIDATION ERRORS =", validationErrors)
 
     if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors)
+      const errorMessages = Object.values(validationErrors).join(', ')
+      setApiError(`${errorMessages}`)
       return
     }
 
-    setErrors({})
+    setApiError('')
     setIsSubmitting(true)
 
     try {
       await register(formValues)
+      openSuccessModal()
     } catch (err) {
-      console.error(err)
+      const error = err as { response?: { status?: number; data?: { message?: string } }; message?: string }
+      if (error.response?.data?.message) {
+        setApiError(error.response.data.message)
+      } else if (error.response?.status === 409 || error.message?.includes('already exists')) {
+        setApiError('Un compte avec cet email existe déjà')
+      } else {
+        setApiError("Une erreur est survenue lors de l'inscription. Veuillez réessayer.")
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -47,6 +85,37 @@ export default function RegisterForm() {
     <div className="mt-5">
       <form onSubmit={handleSubmit}>
         <div className="grid gap-y-4">
+          {apiError && (
+            <div
+              className="bg-red-100 border border-red-200 text-sm text-red-800 rounded-lg p-4"
+              role="alert"
+            >
+              <div className="flex">
+                <div className="shrink-0">
+                  <svg
+                    className="size-4 mt-0.5"
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="m15 9-6 6"></path>
+                    <path d="m9 9 6 6"></path>
+                  </svg>
+                </div>
+                <div className="ms-3">
+                  <span className="font-bold">Erreur !</span> {apiError}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div>
             <label htmlFor="email" className="block text-sm mb-2">
               Adresse email
@@ -202,8 +271,7 @@ export default function RegisterForm() {
           <button
             type="submit"
             className="w-full py-3 px-4 inline-flex justify-center items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-blue-600 text-white hover:bg-blue-700 focus:outline-hidden focus:bg-blue-700 disabled:opacity-50 disabled:pointer-events-none"
-            aria-haspopup="dialog" aria-expanded="false" aria-controls="hs-custom-backdrop-modal"
-            data-hs-overlay="#hs-custom-backdrop-modal"
+            disabled={isSubmitting}
           >
             <span
               className="animate-spin inline-block size-4 border-3 border-current border-t-transparent text-white rounded-full"
@@ -224,24 +292,35 @@ export default function RegisterForm() {
         </div>
       </form>
 
-
-      <div id="hs-custom-backdrop-modal"
-           className="hs-overlay size-full fixed top-0 start-0 z-80 overflow-x-hidden overflow-y-auto pointer-events-none"
-           role="dialog" tabIndex="-1" aria-labelledby="hs-custom-backdrop-label">
-        <div
-            className="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto">
-          <div
-              className="flex flex-col bg-white border border-gray-200 shadow-2xs rounded-xl pointer-events-auto dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-neutral-700/70">
-            <div
-                className="flex justify-between items-center py-3 px-4 border-b border-gray-200 dark:border-neutral-700">
-
-              <button type="button"
-                      className="size-8 inline-flex justify-center items-center gap-x-2 rounded-full border border-transparent bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-hidden focus:bg-gray-200 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:hover:bg-neutral-600 dark:text-neutral-400 dark:focus:bg-neutral-600"
-                      aria-label="Close" data-hs-overlay="#hs-custom-backdrop-modal">
+      <div
+        id="hs-custom-backdrop-modal"
+        className="hs-overlay size-full fixed top-0 start-0 z-80 overflow-x-hidden overflow-y-auto pointer-events-none"
+        role="dialog"
+        tabIndex={-1}
+        aria-labelledby="hs-custom-backdrop-label"
+      >
+        <div className="hs-overlay-open:mt-7 hs-overlay-open:opacity-100 hs-overlay-open:duration-500 mt-0 opacity-0 ease-out transition-all sm:max-w-lg sm:w-full m-3 sm:mx-auto">
+          <div className="flex flex-col bg-white border border-gray-200 shadow-2xs rounded-xl pointer-events-auto dark:bg-neutral-800 dark:border-neutral-700 dark:shadow-neutral-700/70">
+            <div className="flex justify-between items-center py-3 px-4 border-b border-gray-200 dark:border-neutral-700">
+              <button
+                type="button"
+                className="size-8 inline-flex justify-center items-center gap-x-2 rounded-full border border-transparent bg-gray-100 text-gray-800 hover:bg-gray-200 focus:outline-hidden focus:bg-gray-200 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-700 dark:hover:bg-neutral-600 dark:text-neutral-400 dark:focus:bg-neutral-600"
+                aria-label="Close"
+                data-hs-overlay="#hs-custom-backdrop-modal"
+              >
                 <span className="sr-only">Close</span>
-                <svg className="shrink-0 size-4" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                     stroke-linejoin="round">
+                <svg
+                  className="shrink-0 size-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
                   <path d="M18 6 6 18"></path>
                   <path d="m6 6 12 12"></path>
                 </svg>
@@ -249,21 +328,29 @@ export default function RegisterForm() {
             </div>
             <div className="p-4 overflow-y-auto">
               <div
-                  className="mt-2 bg-teal-100 border border-teal-200 text-sm text-teal-800 rounded-lg p-4 dark:bg-teal-800/10 dark:border-teal-900 dark:text-teal-500"
-                  role="alert" tabIndex="-1" aria-labelledby="hs-soft-color-success-label">
-                <span id="hs-soft-color-success-label" className="font-bold">Ok !</span>
+                className="mt-2 bg-teal-100 border border-teal-200 text-sm text-teal-800 rounded-lg p-4 dark:bg-teal-800/10 dark:border-teal-900 dark:text-teal-500"
+                role="alert"
+                tabIndex={-1}
+                aria-labelledby="hs-soft-color-success-label"
+              >
+                <span id="hs-soft-color-success-label" className="font-bold">
+                  Ok !
+                </span>
               </div>
             </div>
-            <div
-                className="flex justify-end items-center gap-x-2 py-3 px-4 border-t border-gray-200 dark:border-neutral-700">
-              <button type="button"
-                      className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-2xs hover:bg-gray-50 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700"
-                      data-hs-overlay="#hs-custom-backdrop-modal">
+            <div className="flex justify-end items-center gap-x-2 py-3 px-4 border-t border-gray-200 dark:border-neutral-700">
+              <button
+                type="button"
+                className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-2xs hover:bg-gray-50 focus:outline-hidden focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-800 dark:border-neutral-700 dark:text-white dark:hover:bg-neutral-700 dark:focus:bg-neutral-700"
+                data-hs-overlay="#hs-custom-backdrop-modal"
+              >
                 Close
               </button>
-              <button type="button"
-                      className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-gray-600 text-white hover:bg-gray-700 focus:outline-hidden focus:bg-gray-700 disabled:opacity-50 disabled:pointer-events-none"
-              onClick={()=> navigate("/auth/login")}
+              <button
+                type="button"
+                className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-gray-600 text-white hover:bg-gray-700 focus:outline-hidden focus:bg-gray-700 disabled:opacity-50 disabled:pointer-events-none"
+                data-hs-overlay="#hs-custom-backdrop-modal"
+                onClick={handleSuccessModalClose}
               >
                 Save changes
               </button>
