@@ -55,7 +55,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const logout = async () => {
-    setToken('')
+    removeToken()
+    setUser(null)
     navigate('/auth/login')
   }
 

@@ -10,20 +10,44 @@ export interface RegisterFormValues {
   confirmPassword: string
 }
 
+const EMAIL_REGEX = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i
+const MIN_PASSWORD_LENGTH = 8
+
+const validateEmail = (email: string): string | null => {
+  if (!email) {
+    return "L'email est requis"
+  }
+  if (!EMAIL_REGEX.test(email)) {
+    return "L'email n'est pas valide"
+  }
+  return null
+}
+
+const validatePassword = (password: string): string | null => {
+  if (!password) {
+    return 'Le mot de passe est requis'
+  }
+  if (password.length < MIN_PASSWORD_LENGTH) {
+    return `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères`
+  }
+  return null
+}
+
+const validatePasswordMatch = (password: string, confirmPassword: string): string | null => {
+  if (password !== confirmPassword) {
+    return 'Les mots de passe ne sont pas identiques'
+  }
+  return null
+}
+
 export function validateLogin(values: LoginFormValues) {
   const errors: Partial<Record<keyof LoginFormValues, string>> = {}
 
-  if (!values.email) {
-    errors.email = "L'email est requis"
-  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)) {
-    errors.email = "L'email n'est pas valide"
-  }
+  const emailError = validateEmail(values.email)
+  if (emailError) errors.email = emailError
 
-  if (!values.password) {
-    errors.password = 'Le mot de passe est requis'
-  } else if (values.password.length < 8) {
-    errors.password = 'Le mot de passe doit contenir au moins 8 caractères'
-  }
+  const passwordError = validatePassword(values.password)
+  if (passwordError) errors.password = passwordError
 
   return errors
 }
@@ -31,20 +55,21 @@ export function validateLogin(values: LoginFormValues) {
 export function validateRegistration(values: RegisterFormValues) {
   const errors: Partial<Record<keyof RegisterFormValues, string>> = {}
 
-  if (!values.email) {
-    errors.email = "L'email est requis"
-  } else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)) {
-    errors.email = "L'email n'est pas valide"
+  const emailError = validateEmail(values.email)
+  if (emailError) errors.email = emailError
+
+  const passwordError = validatePassword(values.password)
+  if (passwordError) errors.password = passwordError
+
+  const confirmPasswordError = validatePassword(values.confirmPassword)
+  if (confirmPasswordError && !passwordError) {
+    errors.confirmPassword = confirmPasswordError
   }
 
-  if (!values.password || !values.confirmPassword) {
-    errors.password = 'Le mot de passe est requis'
-  } else if (values.password.length < 8 || values.confirmPassword.length < 8) {
-    errors.password = 'Le mot de passe doit contenir au moins 8 caractères'
+  const passwordMatchError = validatePasswordMatch(values.password, values.confirmPassword)
+  if (passwordMatchError && !passwordError && !confirmPasswordError) {
+    errors.confirmPassword = passwordMatchError
   }
 
-  if (values.password != values.confirmPassword) {
-    errors.confirmPassword = 'Les mot de passe ne sont pas identiques'
-  }
   return errors
 }
