@@ -1,4 +1,4 @@
-name: CI/CD Pipeline - React Vite
+name: CI/CD Pipeline
 
 on:
   push:
@@ -11,89 +11,215 @@ on:
     branches:
       - 'develop'
       - 'main'
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Type de release (major, minor, patch)"
+        required: false
+        default: "patch"
 
 jobs:
-  feature-build:
-    if: startsWith(github.ref, 'refs/heads/feat/') || startsWith(github.ref, 'refs/heads/tech/')
+  setup:
     runs-on: ubuntu-latest
+    outputs:
+      node-cache-hit: ${{ steps.cache-node.outputs.cache-hit }}
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
 
+      - name: Cache node_modules
+        id: cache-node
+        uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            ~/.yarn/cache
+          key: ${{ runner.os }}-node-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
       - name: Install dependencies
+        if: steps.cache-node.outputs.cache-hit != 'true'
         run: yarn install --frozen-lockfile
 
-      - name: Run tests
-        run: echo "no test yet"
+      - name: Upload node_modules
+        uses: actions/upload-artifact@v4
+        with:
+          name: node-modules
+          path: node_modules
 
-      - name: Build app (feature)
+  lint:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules
+          path: node_modules
+
+      - name: Run ESLint
+        run: yarn lint
+
+  knip-check:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules
+          path: node_modules
+
+      - name: Run Knip
+        run: yarn knip
+
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules
+          path: node_modules
+
+      - name: Run Tests
+        run: yarn test
+
+  build:
+    needs: [setup, lint, knip-check, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Download node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: node-modules
+          path: node_modules
+
+      - name: Build Application
         run: yarn build
 
-      - name: Upload build artifact
+      - name: Extract Project Version
+        id: extract-version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Upload Build Artifact
         uses: actions/upload-artifact@v4
         with:
           name: vite-build
           path: dist/
 
-  develop-build:
-    if: github.ref == 'refs/heads/develop'
+  release:
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
         with:
-          node-version: '23.10.0'
+          fetch-depth: 0
 
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Run tests
-        run: echo "no test yet"
-
-      - name: Build app (develop)
-        run: yarn build
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
         with:
-          name: vite-build-develop
-          path: dist/
+          node-version: '20'
 
-  deploy-main:
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '23.10.0'
-
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      - name: Run tests
-        run: echo "no test yet"
-
-      - name: Build app (main)
-        run: yarn build
-
-      - name: Install Fly CLI
+      - name: Configure Git
         run: |
-          curl -L https://fly.io/install.sh | sh
-          echo "$HOME/.fly/bin" >> $GITHUB_PATH
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Compute next version
+        id: version
+        run: |
+          CUR=$(node -p "require('./package.json').version")
+          IFS='.' read -r MAJ MIN PAT <<< "$CUR"
+          
+          case "${{ github.event.inputs.release_type }}" in
+          major)
+           MAJ=$((MAJ+1)); MIN=0; PAT=0 ;;
+          minor)
+           MIN=$((MIN+1)); PAT=0 ;;
+          *)
+           PAT=$((PAT+1)) ;;
+          esac
+          
+          echo "release=$MAJ.$MIN.$PAT" >> $GITHUB_ENV
+          
+          echo "Release version: $MAJ.$MIN.$PAT"
+
+      - name: Update package.json version
+        run: |
+          npm version ${{ env.release }} --no-git-tag-version
+          git add package.json
+          git commit -m "[skip ci] Release: ${{ env.release }}"
+          git tag -a "v${{ env.release }}" -m "Release v${{ env.release }}"
+          git push origin main
+          git push origin "v${{ env.release }}"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.release }}
+          release_name: Release v${{ env.release }}
+          draft: false
+          prerelease: false
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Fly.io CLI
+        run: curl -L https://fly.io/install.sh | sh
 
       - name: Deploy to Fly.io
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-        run: fly deploy --remote-only
+        run: |
+          ~/.fly/bin/flyctl deploy --remote-only
