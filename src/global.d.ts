@@ -1,0 +1,29 @@
+import type { DataTable } from 'datatables.net'
+import type { Dropzone } from 'dropzone'
+import type { noUiSlider } from 'nouislider'
+import type { IStaticMethods } from 'preline/dist'
+import type { VanillaCalendarPro } from 'vanilla-calendar-pro'
+
+declare global {
+  interface Window {
+    _
+    $: typeof import('jquery')
+    jQuery: typeof import('jquery')
+    DataTable: typeof DataTable
+    Dropzone: typeof Dropzone
+    VanillaCalendarPro: typeof VanillaCalendarPro
+    noUiSlider: typeof noUiSlider
+    HSStaticMethods: IStaticMethods
+    HSOverlay: {
+      getInstance(
+        el: string | HTMLElement,
+        force?: boolean
+      ): {
+        open(): void
+        close(): void
+      } | null
+    }
+  }
+}
+
+export {}

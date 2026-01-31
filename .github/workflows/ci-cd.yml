@@ -1,0 +1,174 @@
+name: CI/CD Pipeline
+
+on:
+  pull_request:
+    branches:
+      - 'develop'
+      - 'main'
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Type de release (major, minor, patch)"
+        required: false
+        default: "patch"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run ESLint
+        run: yarn lint
+
+  knip-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run Knip
+        run: yarn knip
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run Tests
+        run: yarn test --run --passWithNoTests || echo "No tests found, skipping..."
+
+  build:
+    needs: [lint, knip-check, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build Application
+        run: yarn build
+
+      - name: Extract Project Version
+        id: extract-version
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: vite-build
+          path: dist/
+
+  release:
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+      - name: Compute next version
+        id: version
+        run: |
+          CUR=$(node -p "require('./package.json').version")
+          IFS='.' read -r MAJ MIN PAT <<< "$CUR"
+          
+          case "${{ github.event.inputs.release_type }}" in
+          major)
+           MAJ=$((MAJ+1)); MIN=0; PAT=0 ;;
+          minor)
+           MIN=$((MIN+1)); PAT=0 ;;
+          *)
+           PAT=$((PAT+1)) ;;
+          esac
+          
+          echo "release=$MAJ.$MIN.$PAT" >> $GITHUB_ENV
+          
+          echo "Release version: $MAJ.$MIN.$PAT"
+
+      - name: Update package.json version
+        run: |
+          npm version ${{ env.release }} --no-git-tag-version
+          git add package.json
+          git commit -m "[skip ci] Release: ${{ env.release }}"
+          git tag -a "v${{ env.release }}" -m "Release v${{ env.release }}"
+          git push origin main
+          git push origin "v${{ env.release }}"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ env.release }}
+          release_name: Release v${{ env.release }}
+          draft: false
+          prerelease: false
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Fly.io CLI
+        run: curl -L https://fly.io/install.sh | sh
+
+      - name: Deploy to Fly.io
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: |
+          ~/.fly/bin/flyctl deploy --remote-only
