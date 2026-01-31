@@ -1,16 +1,12 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "ignoreDependencies": [
-    "prettier",
     "preline",
     "@preline/overlay",
     "nouislider",
     "vanilla-calendar-pro",
     "datatables.net",
     "dropzone"
-  ],
-  "ignoreBinaries": [
-    "prettier"
   ],
   "ignore": [
     "prettier.config.cjs",
