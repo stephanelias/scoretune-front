@@ -3,6 +3,10 @@ import { useAuth } from '../../core/contexts/AuthContext'
 export default function UserInfos() {
   const { user, logout } = useAuth()
 
+  if (!user) {
+    return null
+  }
+
   return (
     <div className="flex items-center sm:gap-x-1.5">
       <div className="h-8">
@@ -16,7 +20,7 @@ export default function UserInfos() {
             aria-label="Dropdown"
           >
             <div className="shrink-0 size-8 border border-gray-200 rounded-full bg-white text-dark flex items-center justify-center font-semibold">
-              {user?.fullName.charAt(0)}
+              {user.fullName.charAt(0)}
             </div>
           </button>
 
@@ -27,8 +31,8 @@ export default function UserInfos() {
             aria-labelledby="hs-dnad"
           >
             <div className="py-2 px-3.5">
-              <span className="font-medium text-gray-800">{user?.fullName}</span>
-              <p className="text-sm text-gray-500">{user?.email}</p>
+              <span className="font-medium text-gray-800">{user.fullName}</span>
+              <p className="text-sm text-gray-500">{user.email}</p>
             </div>
             <div className="p-1 border-t border-gray-200">
               <a
