@@ -2,6 +2,8 @@ app = 'scoretune-front'
 primary_region = 'cdg'
 
 [build]
+  [build.args]
+    VITE_API_URL = "https://scoretune-api.fly.dev"
 
 [http_service]
   internal_port = 8080
