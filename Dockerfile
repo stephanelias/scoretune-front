@@ -12,6 +12,10 @@ RUN yarn install --frozen-lockfile
 # Copy source code
 COPY . .
 
+# Accept build argument from fly.toml [env]
+ARG VITE_API_URL
+ENV VITE_API_URL=${VITE_API_URL}
+
 # Build the application
 RUN yarn build
 
