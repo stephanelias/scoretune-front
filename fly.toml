@@ -3,7 +3,7 @@ primary_region = 'cdg'
 
 [build]
   [build.args]
-    VITE_API_URL = "https://scoretune-api.fly.dev"
+    VITE_API_URL = "https://scoretune-api.fly.dev/api"
 
 [http_service]
   internal_port = 8080
@@ -19,4 +19,4 @@ primary_region = 'cdg'
   cpus = 1
 
 [env]
-  VITE_API_URL = "https://scoretune-api.fly.dev"
+  VITE_API_URL = "https://scoretune-api.fly.dev/api"
