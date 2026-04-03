@@ -36,6 +36,35 @@ export default function SideMenu() {
               </span>
             </Link>
           </li>
+          <li>
+            <Link
+              className="group relative w-full flex items-center gap-1 py-1.5 px-2.5 relative text-sm text-gray-800 rounded-lg before:absolute before:inset-y-0 before:-start-2 before:rounded-e-full before:w-1 before:h-full hover:bg-gray-100/70 focus:outline-hidden focus:bg-gray-100/70 "
+              to="/artists"
+            >
+              <span className="-ms-[5px] flex shrink-0 justify-center items-center size-6">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="shrink-0 size-4 group-hover:scale-115 group-focus:scale-115 transition-transform duration-300"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </span>
+              <span className="truncate hs-overlay-minified:opacity-0 transition-opacity duration-300">
+                Artistes
+              </span>
+            </Link>
+          </li>
           {!user && (
             <li>
               <Link
