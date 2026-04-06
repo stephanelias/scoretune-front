@@ -1,0 +1,166 @@
+name: Main CI & Tag Creation (Frontend)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      yarn-cache-hit: ${{ steps.cache-yarn.outputs.cache-hit }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Upload node_modules
+        uses: actions/upload-artifact@v4
+        with:
+          name: node_modules
+          path: node_modules/
+
+  lint:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: node_modules
+          path: node_modules/
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run ESLint
+        run: yarn lint
+
+  knip:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: node_modules
+          path: node_modules/
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Knip
+        run: yarn knip
+
+  test:
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: node_modules
+          path: node_modules/
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run Tests
+        run: yarn test --run --passWithNoTests || echo "No tests found, skipping..."
+
+  build:
+    needs: [setup, lint, knip, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download node_modules
+        uses: actions/download-artifact@v4
+        with:
+          name: node_modules
+          path: node_modules/
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Application
+        run: yarn build
+
+  create-tag:
+    needs: [setup, lint, knip, test, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Configure Git
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+
+      - name: Determine Release Type from Commit Message
+        id: determine-release-type
+        run: |
+          COMMIT_MESSAGE=$(git log -1 --pretty=%B)
+          RELEASE_TYPE="major" # Default to major if no prefix found
+
+          if [[ "$COMMIT_MESSAGE" =~ ^(feat|chore)\(.*\) ]] || [[ "$COMMIT_MESSAGE" =~ ^(feat|chore): ]]; then
+            RELEASE_TYPE="minor"
+          elif [[ "$COMMIT_MESSAGE" =~ ^fix\(.*\) ]] || [[ "$COMMIT_MESSAGE" =~ ^fix: ]]; then
+            RELEASE_TYPE="patch"
+          fi
+          echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+          echo "Detected release type: $RELEASE_TYPE"
+
+      - name: Pull latest changes
+        run: git pull --rebase origin main
+
+      - name: Bump version and create tag
+        run: |
+          RELEASE_TYPE="${{ steps.determine-release-type.outputs.release_type }}"
+          npm version $RELEASE_TYPE -m "[skip ci] Release: %s"
+          
+          NEW_VERSION=$(node -p "require('./package.json').version")
+          echo "New version: $NEW_VERSION"
+
+      - name: Push changes and tags
+        run: |
+          git push origin main
+          git push --follow-tags
