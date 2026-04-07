@@ -16,7 +16,11 @@ export default function ArtistFormModal({
   onSubmit,
   isSubmitting,
 }: ArtistFormModalProps) {
-  const [formValues, setFormValues] = useState({
+  const [formValues, setFormValues] = useState<{
+    name: string
+    type: ArtistType
+    photoLink: string
+  }>({
     name: '',
     type: ArtistType.ARTIST,
     photoLink: '',

@@ -1,9 +1,11 @@
-export enum ArtistType {
-  ARTIST = 'ARTIST',
-  PRODUCER = 'PRODUCER',
-  GROUP = 'GROUP',
-  LABEL = 'LABEL',
-}
+export const ArtistType = {
+  ARTIST: 'ARTIST',
+  PRODUCER: 'PRODUCER',
+  GROUP: 'GROUP',
+  LABEL: 'LABEL',
+} as const
+
+export type ArtistType = (typeof ArtistType)[keyof typeof ArtistType]
 
 export const ArtistTypeLabels: Record<ArtistType, string> = {
   [ArtistType.ARTIST]: 'Artiste',
