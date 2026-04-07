@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { ArtistTypeBadgeColors, ArtistTypeLabels } from '../models/ArtistType'
 import type { ArtistDto } from '../models/ArtistDto'
 
@@ -9,8 +10,21 @@ interface ArtistCardProps {
 }
 
 export default function ArtistCard({ artist, onEdit, onDelete, canEdit }: ArtistCardProps) {
+  const navigate = useNavigate()
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Prevent navigation if clicking on buttons
+    if ((e.target as HTMLElement).closest('button')) {
+      return
+    }
+    navigate(`/artists/${artist.id}`)
+  }
+
   return (
-    <div className="flex flex-col bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md transition-shadow">
+    <div 
+      className="flex flex-col bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md transition-shadow cursor-pointer"
+      onClick={handleCardClick}
+    >
       <div className="p-3">
         <div className="flex flex-col items-center text-center">
           {/* Avatar */}

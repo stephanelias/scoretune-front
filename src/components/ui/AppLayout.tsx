@@ -9,6 +9,7 @@ interface AppLayoutProps {
   title: string
   children: ReactNode
   maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl' | '4xl' | '5xl' | '6xl' | '7xl' | 'full'
+  hideHeader?: boolean
 }
 
 const maxWidthClasses = {
@@ -25,7 +26,7 @@ const maxWidthClasses = {
   full: 'max-w-full',
 }
 
-export default function AppLayout({ title, children, maxWidth = '3xl' }: AppLayoutProps) {
+export default function AppLayout({ title, children, maxWidth = '3xl', hideHeader = false }: AppLayoutProps) {
   return (
     <>
       <div
@@ -51,9 +52,9 @@ md:block md:translate-x-0 md:end-auto md:bottom-0"
 
       {/* ========== MAIN CONTENT ========== */}
       <main className="md:ps-65 md:hs-overlay-minified:ps-13 transition-all duration-300 pb-4 h-screen flex flex-col bg-white">
-        <Header title={title} />
+        {!hideHeader && <Header title={title} />}
 
-        <div className={`h-full flex flex-col justify-between ${maxWidthClasses[maxWidth]} w-full mt-16 px-4 sm:px-6 lg:px-8`}>
+        <div className={`h-full flex flex-col justify-between ${maxWidthClasses[maxWidth]} w-full ${hideHeader ? '' : 'mt-16'} px-4 sm:px-6 lg:px-8`}>
           {children}
         </div>
       </main>
