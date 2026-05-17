@@ -1,11 +1,24 @@
 import { api } from '../../../lib/axios'
+import type { PageResponse } from '../../../core/models/PageResponse'
 import type { ArtistDto, CreateArtistDto, UpdateArtistDto } from '../models/ArtistDto'
+
+export interface SearchArtistsParams {
+  page: number
+  size: number
+  search?: string
+}
 
 export class ArtistService {
   private static readonly BASE_URL = '/artists'
 
-  static async getAllArtists(): Promise<ArtistDto[]> {
-    const response = await api.get<ArtistDto[]>(this.BASE_URL)
+  static async searchArtists(params: SearchArtistsParams): Promise<PageResponse<ArtistDto>> {
+    const response = await api.get<PageResponse<ArtistDto>>(this.BASE_URL, {
+      params: {
+        page: params.page,
+        size: params.size,
+        ...(params.search ? { search: params.search } : {}),
+      },
+    })
     return response.data
   }
 

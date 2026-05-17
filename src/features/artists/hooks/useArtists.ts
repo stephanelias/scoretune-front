@@ -1,10 +1,11 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
-import { ArtistService } from '../services/ArtistService'
+import { ArtistService, type SearchArtistsParams } from '../services/ArtistService'
 
-export const useArtists = () => {
+export const useArtists = (params: SearchArtistsParams) => {
   return useQuery({
-    queryKey: ['artists'],
-    queryFn: () => ArtistService.getAllArtists(),
+    queryKey: ['artists', params],
+    queryFn: () => ArtistService.searchArtists(params),
+    placeholderData: keepPreviousData,
   })
 }

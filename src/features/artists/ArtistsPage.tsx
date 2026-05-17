@@ -1,6 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import AppLayout from '../../components/ui/AppLayout'
+import Pagination from '../../components/ui/Pagination'
+import SearchInput from '../../components/ui/SearchInput'
+import { useDebouncedValue } from '../../core/hooks/useDebouncedValue'
 import { useAuth } from '../../core/contexts/AuthContext'
 
 import ArtistCard from './components/ArtistCard'
@@ -12,15 +15,20 @@ import { useDeleteArtist } from './hooks/useDeleteArtist'
 import { useUpdateArtist } from './hooks/useUpdateArtist'
 import type { ArtistDto, CreateArtistDto, UpdateArtistDto } from './models/ArtistDto'
 
+const PAGE_SIZE = 10
+
 export default function ArtistsPage() {
   const { user } = useAuth()
-  const { data: artists, isLoading, isError } = useArtists()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [page, setPage] = useState(1)
+  const debouncedSearch = useDebouncedValue(searchQuery.trim(), 300)
 
-  console.log('🌐 VITE_API_URL:', import.meta.env.VITE_API_URL)
-  console.log('🎨 Artists data:', artists, 'Length:', artists?.length)
-  console.log('⏳ Loading:', isLoading)
-  console.log('❌ Error:', isError)
-  console.log('📊 Type:', Array.isArray(artists) ? 'Array' : typeof artists)
+  const { data, isLoading, isError, isFetching } = useArtists({
+    page: page - 1,
+    size: PAGE_SIZE,
+    search: debouncedSearch || undefined,
+  })
+
   const createArtist = useCreateArtist()
   const updateArtist = useUpdateArtist()
   const deleteArtist = useDeleteArtist()
@@ -28,19 +36,22 @@ export default function ArtistsPage() {
   const [selectedArtist, setSelectedArtist] = useState<ArtistDto | null>(null)
   const [artistToDelete, setArtistToDelete] = useState<ArtistDto | null>(null)
 
-  // Vérifier si l'utilisateur peut modifier/supprimer
   const canEdit =
     (user?.roles?.includes('ROLE_ADMIN') || user?.roles?.includes('ROLE_MODO')) ?? false
 
+  const artists = data?.content ?? []
+  const totalPages = data?.totalPages ?? 0
+  const hasSearch = debouncedSearch.length > 0
+  const isEmptyCatalog = !isLoading && data?.totalElements === 0 && !hasSearch
+  const isNoResults = !isLoading && data?.totalElements === 0 && hasSearch
+
   const handleCreateOrUpdate = (artist: CreateArtistDto | UpdateArtistDto) => {
     if (selectedArtist?.id) {
-      // Update
       updateArtist.mutate(
         { id: selectedArtist.id, artist },
         {
           onSuccess: () => {
             setSelectedArtist(null)
-            // Close modal using Preline API
             const modal = document.getElementById('artist-form-modal')
             if (modal) {
               // @ts-expect-error - Preline HSOverlay API
@@ -50,11 +61,9 @@ export default function ArtistsPage() {
         },
       )
     } else {
-      // Create
       createArtist.mutate(artist, {
         onSuccess: () => {
           setSelectedArtist(null)
-          // Close modal using Preline API
           const modal = document.getElementById('artist-form-modal')
           if (modal) {
             // @ts-expect-error - Preline HSOverlay API
@@ -78,7 +87,6 @@ export default function ArtistsPage() {
       deleteArtist.mutate(artistToDelete.id, {
         onSuccess: () => {
           setArtistToDelete(null)
-          // Close modal using Preline API
           const modal = document.getElementById('delete-confirm-modal')
           if (modal) {
             // @ts-expect-error - Preline HSOverlay API
@@ -93,13 +101,20 @@ export default function ArtistsPage() {
     setSelectedArtist(null)
   }
 
+  useEffect(() => {
+    setPage(1)
+  }, [debouncedSearch])
+
+  useEffect(() => {
+    if (totalPages > 0 && page > totalPages) {
+      setPage(totalPages)
+    }
+  }, [page, totalPages])
+
   if (isError) {
     return (
       <AppLayout title="Artistes" maxWidth="7xl">
-        <div
-          className="bg-red-100 border border-red-200 text-sm text-red-800 rounded-lg p-4"
-          role="alert"
-        >
+        <div className="bg-red-100 border border-red-200 text-sm text-red-800 rounded-lg p-4" role="alert">
           <div className="flex">
             <div className="shrink-0">
               <svg
@@ -159,6 +174,14 @@ export default function ArtistsPage() {
           )}
         </div>
 
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Rechercher un artiste…"
+          className="mb-6"
+          disabled={isLoading}
+        />
+
         {isLoading ? (
           <div className="flex justify-center items-center py-12">
             <span
@@ -167,19 +190,7 @@ export default function ArtistsPage() {
               aria-label="loading"
             ></span>
           </div>
-        ) : artists && artists.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-            {artists.map(artist => (
-              <ArtistCard
-                key={artist.id}
-                artist={artist}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                canEdit={canEdit}
-              />
-            ))}
-          </div>
-        ) : (
+        ) : isEmptyCatalog ? (
           <div className="text-center py-12">
             <svg
               className="mx-auto size-12 text-gray-400"
@@ -200,10 +211,40 @@ export default function ArtistsPage() {
               Commencez par créer votre premier artiste.
             </p>
           </div>
+        ) : isNoResults ? (
+          <div className="text-center py-12">
+            <h3 className="text-sm font-semibold text-gray-800">Aucun résultat</h3>
+            <p className="mt-1 text-sm text-gray-600">
+              Aucun artiste ne correspond à « {debouncedSearch} ».
+            </p>
+          </div>
+        ) : (
+          <>
+            <div
+              className={`grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4 transition-opacity ${isFetching ? 'opacity-60' : 'opacity-100'}`}
+            >
+              {artists.map(artist => (
+                <ArtistCard
+                  key={artist.id}
+                  artist={artist}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  canEdit={canEdit}
+                />
+              ))}
+            </div>
+            <div className="flex shrink-0 justify-center border-t border-gray-100 py-6 mt-6">
+              <Pagination
+                page={page}
+                totalPages={totalPages}
+                onPageChange={setPage}
+                disabled={isFetching}
+              />
+            </div>
+          </>
         )}
       </div>
 
-      {/* Modals */}
       <ArtistFormModal
         modalId="artist-form-modal"
         artist={selectedArtist}
