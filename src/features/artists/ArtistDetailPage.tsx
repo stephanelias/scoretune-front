@@ -99,10 +99,9 @@ export const ArtistDetailPage = () => {
       <div className="h-full -m-4 sm:-m-6 lg:-m-8">
         {/* Hero Section */}
         <div
-          className="relative pt-12 pb-8 px-6"
+          className="relative overflow-x-hidden pt-8 pb-6 px-4 sm:pt-12 sm:pb-8 sm:px-6 min-h-[260px] sm:min-h-[340px]"
           style={{
             background: heroGradient,
-            minHeight: '340px',
           }}
         >
           <div className="max-w-7xl mx-auto">
@@ -129,22 +128,24 @@ export const ArtistDetailPage = () => {
             Retour aux artistes
           </button>
           
-          <div className="flex items-end gap-6">
+          <div className="flex flex-col items-center text-center gap-4 sm:flex-row sm:items-end sm:text-left sm:gap-6">
             {/* Artist Image */}
             {artist.photoLink && (
               <img
                 src={artist.photoLink}
                 alt={artist.name}
-                className="w-48 h-48 rounded-full shadow-2xl object-cover"
+                className="size-32 shrink-0 rounded-full object-cover shadow-2xl sm:size-40 md:size-48"
               />
             )}
 
             {/* Artist Info */}
-            <div className="flex-1 pb-4">
+            <div className="min-w-0 w-full max-w-full flex-1 pb-2 sm:pb-4">
               <p className="text-sm font-semibold mb-2 text-white">
                 {ArtistTypeLabels[artist.type]}
               </p>
-              <h1 className="text-6xl font-bold mb-4 text-white">{artist.name}</h1>
+              <h1 className="text-3xl font-bold leading-tight text-white break-words sm:text-4xl md:text-5xl lg:text-6xl sm:leading-none">
+                {artist.name}
+              </h1>
             </div>
           </div>
         </div>
