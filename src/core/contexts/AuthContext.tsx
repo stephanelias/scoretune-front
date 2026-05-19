@@ -24,7 +24,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { token, setToken, removeToken } = useLocalStorage()
   const { mutateAsync: loginMutation } = useLogin()
   const { mutateAsync: registerMutation } = useRegister()
-  const { refetch } = useCurrentUser()
+  const { refetch } = useCurrentUser(!!token)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -33,9 +33,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .then(res => {
           setUser(res.data ?? null)
         })
-        .catch(() => {
-          setUser(null)
-          removeToken()
+        .catch((error) => {
+          const isAuthError = error?.response?.status === 401 || error?.response?.status === 403
+          
+          if (isAuthError) {
+            setUser(null)
+            removeToken()
+          }
         })
     } else {
       setUser(null)
