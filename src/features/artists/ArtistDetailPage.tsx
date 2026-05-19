@@ -130,12 +130,29 @@ export const ArtistDetailPage = () => {
           
           <div className="flex flex-col items-center text-center gap-4 sm:flex-row sm:items-end sm:text-left sm:gap-6">
             {/* Artist Image */}
-            {artist.photoLink && (
+            {artist.photoLink ? (
               <img
                 src={artist.photoLink}
                 alt={artist.name}
                 className="size-32 shrink-0 rounded-full object-cover shadow-2xl sm:size-40 md:size-48"
               />
+            ) : (
+              <div className="size-32 shrink-0 rounded-full bg-gray-100 flex items-center justify-center shadow-2xl sm:size-40 md:size-48">
+                <svg
+                  className="size-16 text-gray-400 sm:size-20 md:size-24"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                  />
+                </svg>
+              </div>
             )}
 
             {/* Artist Info */}

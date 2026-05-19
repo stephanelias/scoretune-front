@@ -16,7 +16,7 @@ import { useDeleteArtist } from './hooks/useDeleteArtist'
 import { useUpdateArtist } from './hooks/useUpdateArtist'
 import type { ArtistDto, CreateArtistDto, UpdateArtistDto } from './models/ArtistDto'
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 12
 
 export default function ArtistsPage() {
   const { user } = useAuth()
