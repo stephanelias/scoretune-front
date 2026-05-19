@@ -8,6 +8,8 @@ interface ArtistFormModalProps {
   artist?: ArtistDto | null
   onSubmit: (artist: CreateArtistDto | UpdateArtistDto) => void
   isSubmitting: boolean
+  submitError?: string | null
+  onClearSubmitError?: () => void
 }
 
 export default function ArtistFormModal({
@@ -15,6 +17,8 @@ export default function ArtistFormModal({
   artist,
   onSubmit,
   isSubmitting,
+  submitError,
+  onClearSubmitError,
 }: ArtistFormModalProps) {
   const [formValues, setFormValues] = useState<{
     name: string
@@ -99,6 +103,14 @@ export default function ArtistFormModal({
           <form onSubmit={handleSubmit}>
             <div className="p-4 overflow-y-auto">
               <div className="space-y-4">
+                {submitError && (
+                  <div
+                    className="bg-red-50 border border-red-200 text-sm text-red-800 rounded-lg p-3"
+                    role="alert"
+                  >
+                    {submitError}
+                  </div>
+                )}
                 <div>
                   <label htmlFor="name" className="block text-sm font-medium mb-2">
                     Nom *
@@ -110,7 +122,10 @@ export default function ArtistFormModal({
                     className="py-2 px-3 block w-full border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
                     required
                     value={formValues.name}
-                    onChange={e => setFormValues({ ...formValues, name: e.target.value })}
+                    onChange={e => {
+                      onClearSubmitError?.()
+                      setFormValues({ ...formValues, name: e.target.value })
+                    }}
                   />
                 </div>
 

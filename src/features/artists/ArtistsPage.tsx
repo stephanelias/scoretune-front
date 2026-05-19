@@ -4,6 +4,7 @@ import AppLayout from '../../components/ui/AppLayout'
 import Pagination from '../../components/ui/Pagination'
 import SearchInput from '../../components/ui/SearchInput'
 import { useDebouncedValue } from '../../core/hooks/useDebouncedValue'
+import { getApiErrorMessage } from '../../core/utils/getApiErrorMessage'
 import { useAuth } from '../../core/contexts/AuthContext'
 
 import ArtistCard from './components/ArtistCard'
@@ -35,6 +36,7 @@ export default function ArtistsPage() {
 
   const [selectedArtist, setSelectedArtist] = useState<ArtistDto | null>(null)
   const [artistToDelete, setArtistToDelete] = useState<ArtistDto | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
 
   const canEdit =
     (user?.roles?.includes('ROLE_ADMIN') || user?.roles?.includes('ROLE_MODO')) ?? false
@@ -46,6 +48,8 @@ export default function ArtistsPage() {
   const isNoResults = !isLoading && data?.totalElements === 0 && hasSearch
 
   const handleCreateOrUpdate = (artist: CreateArtistDto | UpdateArtistDto) => {
+    setFormError(null)
+
     if (selectedArtist?.id) {
       updateArtist.mutate(
         { id: selectedArtist.id, artist },
@@ -58,6 +62,10 @@ export default function ArtistsPage() {
               window.HSOverlay.close(modal)
             }
           },
+          onError: error =>
+            setFormError(
+              getApiErrorMessage(error, "Impossible de modifier l'artiste. Veuillez réessayer."),
+            ),
         },
       )
     } else {
@@ -70,11 +78,16 @@ export default function ArtistsPage() {
             window.HSOverlay.close(modal)
           }
         },
+        onError: error =>
+          setFormError(
+            getApiErrorMessage(error, "Impossible de créer l'artiste. Veuillez réessayer."),
+          ),
       })
     }
   }
 
   const handleEdit = (artist: ArtistDto) => {
+    setFormError(null)
     setSelectedArtist(artist)
   }
 
@@ -98,6 +111,7 @@ export default function ArtistsPage() {
   }
 
   const handleNewArtist = () => {
+    setFormError(null)
     setSelectedArtist(null)
   }
 
@@ -250,6 +264,8 @@ export default function ArtistsPage() {
         artist={selectedArtist}
         onSubmit={handleCreateOrUpdate}
         isSubmitting={createArtist.isPending || updateArtist.isPending}
+        submitError={formError}
+        onClearSubmitError={() => setFormError(null)}
       />
 
       <DeleteConfirmModal
