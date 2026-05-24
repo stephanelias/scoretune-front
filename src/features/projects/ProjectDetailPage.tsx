@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import AppLayout from '../../components/ui/AppLayout'
+import { useAuth } from '../../core/contexts/AuthContext'
 import { createHeroGradient, getAverageColor } from '../../core/utils/imageColor'
 
+import ProjectDeleteConfirmModal from './components/ProjectDeleteConfirmModal'
+import { useDeleteProject } from './hooks/useDeleteProject'
 import { useProject } from './hooks/useProject'
 import type { ArtistSummaryDto } from './models/ArtistSummaryDto'
 import { ProjectCategoryLabels } from './models/ProjectCategory'
@@ -59,7 +62,8 @@ function TrackRow({ track }: { track: TrackDto }) {
           <ArtistLinks artists={track.interpreters} />
           {track.featurings.length > 0 && (
             <>
-              {' '}feat. <ArtistLinks artists={track.featurings} />
+              {', '}
+              <ArtistLinks artists={track.featurings} />
             </>
           )}
         </p>
@@ -68,10 +72,20 @@ function TrackRow({ track }: { track: TrackDto }) {
   )
 }
 
+function openOverlay(modalId: string) {
+  const modal = document.getElementById(modalId)
+  if (!modal || !window.HSOverlay) return
+
+  window.HSOverlay.autoInit()
+  window.HSOverlay.open(modal)
+}
+
 export const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { user } = useAuth()
   const { data: project, isLoading, isError } = useProject(id!)
+  const deleteProject = useDeleteProject()
   const [heroGradient, setHeroGradient] = useState(
     'linear-gradient(to bottom, rgb(83, 83, 83) 0%, rgba(18, 18, 18, 1) 100%)',
   )
@@ -125,6 +139,22 @@ export const ProjectDetailPage = () => {
   const sortedTracks = [...project.tracks].sort((a, b) => a.trackNumber - b.trackNumber)
   const tracksCountLabel = `${sortedTracks.length} titre${sortedTracks.length > 1 ? 's' : ''}`
 
+  const canEdit =
+    (user?.roles?.includes('ROLE_ADMIN') || user?.roles?.includes('ROLE_MODO')) ?? false
+  const canDelete = user?.roles?.includes('ROLE_ADMIN') ?? false
+
+  const confirmDelete = () => {
+    deleteProject.mutate(project.id, {
+      onSuccess: () => {
+        const modal = document.getElementById('project-delete-modal')
+        if (modal) {
+          window.HSOverlay?.close(modal)
+        }
+        navigate('/projects')
+      },
+    })
+  }
+
   return (
     <AppLayout title={project.name} maxWidth="full" hideHeader={true}>
       <div className="h-full -m-4 sm:-m-6 lg:-m-8">
@@ -133,27 +163,51 @@ export const ProjectDetailPage = () => {
           style={{ background: heroGradient }}
         >
           <div className="max-w-7xl mx-auto">
-            <button
-              type="button"
-              onClick={() => navigate('/projects')}
-              className="mb-4 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent text-white/80 hover:text-white"
-            >
-              <svg
-                className="shrink-0 size-4"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <button
+                type="button"
+                onClick={() => navigate('/projects')}
+                className="inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent text-white/80 hover:text-white"
               >
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-              Retour aux projets
-            </button>
+                <svg
+                  className="shrink-0 size-4"
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="m15 18-6-6 6-6" />
+                </svg>
+                Retour aux projets
+              </button>
+
+              {(canEdit || canDelete) && (
+                <div className="flex flex-wrap gap-2">
+                  {canEdit && (
+                    <Link
+                      to={`/projects/${project.id}/edit`}
+                      className="py-2 px-3 inline-flex items-center gap-x-1 text-sm font-medium rounded-lg border border-white/30 bg-white/10 text-white hover:bg-white/20"
+                    >
+                      Modifier
+                    </Link>
+                  )}
+                  {canDelete && (
+                    <button
+                      type="button"
+                      onClick={() => openOverlay('project-delete-modal')}
+                      className="py-2 px-3 inline-flex items-center gap-x-1 text-sm font-medium rounded-lg border border-red-300/50 bg-red-500/20 text-white hover:bg-red-500/30"
+                    >
+                      Supprimer
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
 
             <div className="flex flex-col items-center text-center gap-4 sm:flex-row sm:items-end sm:text-left sm:gap-6">
               {project.coverLink ? (
@@ -237,6 +291,13 @@ export const ProjectDetailPage = () => {
           </div>
         </div>
       </div>
+
+      <ProjectDeleteConfirmModal
+        modalId="project-delete-modal"
+        projectName={project.name}
+        onConfirm={confirmDelete}
+        isDeleting={deleteProject.isPending}
+      />
     </AppLayout>
   )
 }

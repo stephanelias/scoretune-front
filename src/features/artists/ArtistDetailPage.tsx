@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useArtist } from './hooks/useArtist';
+import { useArtistAppearances } from './hooks/useArtistAppearances';
+import { useArtistProjects } from './hooks/useArtistProjects';
+import ArtistProjectGrid from './components/ArtistProjectGrid';
 import { ArtistTypeLabels } from './models/ArtistType';
+import { ProjectType } from '../projects/models/ProjectType';
 import { getAverageColor, createHeroGradient } from '../../core/utils/imageColor';
 import AppLayout from '../../components/ui/AppLayout';
 
@@ -9,6 +13,10 @@ export const ArtistDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: artist, isLoading, isError } = useArtist(id!);
+  const singlesQuery = useArtistProjects(id!, ProjectType.SINGLE);
+  const albumsQuery = useArtistProjects(id!, ProjectType.ALBUM);
+  const epsQuery = useArtistProjects(id!, ProjectType.EP);
+  const appearancesQuery = useArtistAppearances(id!);
   const [heroGradient, setHeroGradient] = useState<string>('linear-gradient(to bottom, rgb(83, 83, 83) 0%, rgba(18, 18, 18, 1) 100%)');
 
   useEffect(() => {
@@ -223,29 +231,12 @@ export const ArtistDetailPage = () => {
               role="tabpanel"
               aria-labelledby="tabs-with-underline-item-1"
             >
-              {/* Empty State - Preline Style */}
-              <div className="max-w-sm mx-auto text-center py-16">
-                <svg
-                  className="size-16 mx-auto text-gray-400 mb-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                </svg>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  Aucun single disponible
-                </h3>
-                <p className="text-gray-600">
-                  Les singles de cet artiste apparaîtront ici prochainement.
-                </p>
-              </div>
+              <ArtistProjectGrid
+                projects={singlesQuery.data?.content ?? []}
+                isLoading={singlesQuery.isLoading}
+                emptyTitle="Aucun single"
+                emptyDescription="Les singles où cet artiste est artiste principal apparaîtront ici."
+              />
             </div>
 
             {/* Albums Tab */}
@@ -255,29 +246,12 @@ export const ArtistDetailPage = () => {
               role="tabpanel"
               aria-labelledby="tabs-with-underline-item-2"
             >
-              {/* Empty State - Preline Style */}
-              <div className="max-w-sm mx-auto text-center py-16">
-                <svg
-                  className="size-16 mx-auto text-gray-400 mb-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                </svg>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  Aucun album disponible
-                </h3>
-                <p className="text-gray-600">
-                  Les albums de cet artiste apparaîtront ici prochainement.
-                </p>
-              </div>
+              <ArtistProjectGrid
+                projects={albumsQuery.data?.content ?? []}
+                isLoading={albumsQuery.isLoading}
+                emptyTitle="Aucun album"
+                emptyDescription="Les albums où cet artiste est artiste principal apparaîtront ici."
+              />
             </div>
 
             {/* EPs Tab */}
@@ -287,58 +261,23 @@ export const ArtistDetailPage = () => {
               role="tabpanel"
               aria-labelledby="tabs-with-underline-item-3"
             >
-              {/* Empty State - Preline Style */}
-              <div className="max-w-sm mx-auto text-center py-16">
-                <svg
-                  className="size-16 mx-auto text-gray-400 mb-4"
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
-                </svg>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                  Aucun EP disponible
-                </h3>
-                <p className="text-gray-600">
-                  Les EPs de cet artiste apparaîtront ici prochainement.
-                </p>
-              </div>
+              <ArtistProjectGrid
+                projects={epsQuery.data?.content ?? []}
+                isLoading={epsQuery.isLoading}
+                emptyTitle="Aucun EP"
+                emptyDescription="Les EPs où cet artiste est artiste principal apparaîtront ici."
+              />
             </div>
           </div>
 
-          {/* Playlist Section */}
           <div className="mt-12 pt-8 border-t border-gray-200">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">Apparaît sur</h2>
-            {/* Empty State - Preline Style */}
-            <div className="max-w-sm mx-auto text-center py-16">
-              <svg
-                className="size-16 mx-auto text-gray-400 mb-4"
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-              </svg>
-              <h3 className="text-xl font-semibold text-gray-800 mb-2">
-                Aucune playlist disponible
-              </h3>
-              <p className="text-gray-600">
-                Les playlists avec cet artiste apparaîtront ici prochainement.
-              </p>
-            </div>
+            <ArtistProjectGrid
+              projects={appearancesQuery.data?.content ?? []}
+              isLoading={appearancesQuery.isLoading}
+              emptyTitle="Aucune apparition"
+              emptyDescription="Les projets où cet artiste est en featuring sur au moins un titre apparaîtront ici."
+            />
           </div>
         </div>
       </div>

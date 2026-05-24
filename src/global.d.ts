@@ -15,13 +15,10 @@ declare global {
     noUiSlider: typeof noUiSlider
     HSStaticMethods: IStaticMethods
     HSOverlay: {
-      getInstance(
-        el: string | HTMLElement,
-        force?: boolean
-      ): {
-        open(): void
-        close(): void
-      } | null
+      autoInit(): void
+      open(target: HTMLElement | string): void
+      close(target: HTMLElement | string): void
+      getInstance(target: HTMLElement | string, isInstance?: boolean): unknown
     }
   }
 }

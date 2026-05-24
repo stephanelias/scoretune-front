@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import AppLayout from '../../components/ui/AppLayout'
 import Pagination from '../../components/ui/Pagination'
@@ -80,11 +81,9 @@ export default function ProjectsPage() {
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-800">Liste des projets</h2>
           {canEdit && (
-            <button
-              type="button"
-              disabled
-              title="Disponible à l'étape création"
-              className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-gray-800 text-white opacity-50 cursor-not-allowed"
+            <Link
+              to="/projects/new"
+              className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-gray-800 text-white hover:bg-gray-900"
             >
               <svg
                 className="size-4"
@@ -101,7 +100,7 @@ export default function ProjectsPage() {
                 />
               </svg>
               Nouveau projet
-            </button>
+            </Link>
           )}
         </div>
 
