@@ -1,5 +1,6 @@
 import { api } from '../../../lib/axios'
 import type { PageResponse } from '../../../core/models/PageResponse'
+import type { ProjectDto } from '../models/ProjectDto'
 import type { ProjectSummaryDto } from '../models/ProjectSummaryDto'
 
 export interface SearchProjectsParams {
@@ -19,6 +20,11 @@ export class ProjectService {
         ...(params.search ? { search: params.search } : {}),
       },
     })
+    return response.data
+  }
+
+  static async getProjectById(id: string): Promise<ProjectDto> {
+    const response = await api.get<ProjectDto>(`${this.BASE_URL}/${id}`)
     return response.data
   }
 }
