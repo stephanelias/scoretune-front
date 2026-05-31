@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { flushSync } from 'react-dom'
 
 import AppLayout from '../../components/ui/AppLayout'
 import Pagination from '../../components/ui/Pagination'
@@ -17,6 +18,14 @@ import { useUpdateArtist } from './hooks/useUpdateArtist'
 import type { ArtistDto, CreateArtistDto, UpdateArtistDto } from './models/ArtistDto'
 
 const PAGE_SIZE = 12
+
+function openOverlay(modalId: string) {
+  const modal = document.getElementById(modalId)
+  if (!modal || !window.HSOverlay) return
+
+  window.HSOverlay.autoInit()
+  window.HSOverlay.open(modal)
+}
 
 export default function ArtistsPage() {
   const { user } = useAuth()
@@ -58,8 +67,7 @@ export default function ArtistsPage() {
             setSelectedArtist(null)
             const modal = document.getElementById('artist-form-modal')
             if (modal) {
-              // @ts-expect-error - Preline HSOverlay API
-              window.HSOverlay.close(modal)
+              window.HSOverlay?.close(modal)
             }
           },
           onError: error =>
@@ -74,8 +82,7 @@ export default function ArtistsPage() {
           setSelectedArtist(null)
           const modal = document.getElementById('artist-form-modal')
           if (modal) {
-            // @ts-expect-error - Preline HSOverlay API
-            window.HSOverlay.close(modal)
+            window.HSOverlay?.close(modal)
           }
         },
         onError: error =>
@@ -88,11 +95,17 @@ export default function ArtistsPage() {
 
   const handleEdit = (artist: ArtistDto) => {
     setFormError(null)
-    setSelectedArtist(artist)
+    flushSync(() => {
+      setSelectedArtist(artist)
+    })
+    openOverlay('artist-form-modal')
   }
 
   const handleDelete = (artist: ArtistDto) => {
-    setArtistToDelete(artist)
+    flushSync(() => {
+      setArtistToDelete(artist)
+    })
+    openOverlay('delete-confirm-modal')
   }
 
   const confirmDelete = () => {
@@ -102,8 +115,7 @@ export default function ArtistsPage() {
           setArtistToDelete(null)
           const modal = document.getElementById('delete-confirm-modal')
           if (modal) {
-            // @ts-expect-error - Preline HSOverlay API
-            window.HSOverlay.close(modal)
+            window.HSOverlay?.close(modal)
           }
         },
       })
@@ -112,7 +124,10 @@ export default function ArtistsPage() {
 
   const handleNewArtist = () => {
     setFormError(null)
-    setSelectedArtist(null)
+    flushSync(() => {
+      setSelectedArtist(null)
+    })
+    openOverlay('artist-form-modal')
   }
 
   useEffect(() => {
@@ -167,7 +182,6 @@ export default function ArtistsPage() {
               type="button"
               onClick={handleNewArtist}
               className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-gray-800 text-white hover:bg-gray-900 focus:outline-none focus:bg-gray-900 disabled:opacity-50 disabled:pointer-events-none"
-              data-hs-overlay="#artist-form-modal"
             >
               <svg
                 className="size-4"
