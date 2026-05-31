@@ -68,9 +68,11 @@ export default function ArtistCard({ artist, onEdit, onDelete, canEdit }: Artist
             <div className="flex gap-x-2 w-full mt-2">
               <button
                 type="button"
-                onClick={() => onEdit(artist)}
+                onClick={event => {
+                  event.stopPropagation()
+                  onEdit(artist)
+                }}
                 className="flex-1 py-2 px-3 inline-flex justify-center items-center gap-x-1 text-sm font-semibold rounded-lg border border-transparent text-blue-600 hover:text-blue-700 hover:underline focus:outline-hidden focus:underline disabled:opacity-50 disabled:pointer-events-none"
-                data-hs-overlay="#artist-form-modal"
               >
                 <svg
                   className="size-4"
@@ -90,9 +92,11 @@ export default function ArtistCard({ artist, onEdit, onDelete, canEdit }: Artist
               </button>
               <button
                 type="button"
-                onClick={() => onDelete(artist)}
+                onClick={event => {
+                  event.stopPropagation()
+                  onDelete(artist)
+                }}
                 className="py-2 px-3 inline-flex justify-center items-center gap-x-1 text-sm font-semibold rounded-lg border border-transparent text-red-600 hover:text-red-700 hover:underline focus:outline-hidden focus:underline disabled:opacity-50 disabled:pointer-events-none"
-                data-hs-overlay="#delete-confirm-modal"
               >
                 <svg
                   className="size-4"
