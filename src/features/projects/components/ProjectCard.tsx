@@ -5,9 +5,14 @@ import { ProjectTypeBadgeColors, ProjectTypeLabels } from '../models/ProjectType
 
 interface ProjectCardProps {
   project: ProjectSummaryDto
+  metaVariant?: 'artists' | 'year-type'
 }
 
-export default function ProjectCard({ project }: ProjectCardProps) {
+function getReleaseYear(releaseDate: string) {
+  return new Date(`${releaseDate}T00:00:00`).getFullYear()
+}
+
+export default function ProjectCard({ project, metaVariant = 'artists' }: ProjectCardProps) {
   return (
     <div className="flex flex-col w-full bg-white border border-gray-200 shadow-sm rounded-xl hover:shadow-md transition-shadow overflow-hidden">
       <Link to={`/projects/${project.id}`} className="block">
@@ -45,25 +50,31 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           {project.name}
         </Link>
 
-        <div className="flex items-center gap-2 min-w-0">
-          <span
-            className={`shrink-0 inline-flex items-center py-1 px-2.5 rounded-full text-xs font-medium ${ProjectTypeBadgeColors[project.type]}`}
-          >
-            {ProjectTypeLabels[project.type]}
-          </span>
+        {metaVariant === 'year-type' ? (
           <p className="min-w-0 truncate text-sm text-gray-600">
-            {project.artists.length > 0
-              ? project.artists.map((artist, index) => (
-                  <span key={artist.id}>
-                    {index > 0 && ', '}
-                    <Link to={`/artists/${artist.id}`} className="hover:text-gray-800 hover:underline">
-                      {artist.name}
-                    </Link>
-                  </span>
-                ))
-              : 'Artiste inconnu'}
+            {getReleaseYear(project.releaseDate)} · {ProjectTypeLabels[project.type]}
           </p>
-        </div>
+        ) : (
+          <div className="flex items-center gap-2 min-w-0">
+            <span
+              className={`shrink-0 inline-flex items-center py-1 px-2.5 rounded-full text-xs font-medium ${ProjectTypeBadgeColors[project.type]}`}
+            >
+              {ProjectTypeLabels[project.type]}
+            </span>
+            <p className="min-w-0 truncate text-sm text-gray-600">
+              {project.artists.length > 0
+                ? project.artists.map((artist, index) => (
+                    <span key={artist.id}>
+                      {index > 0 && ', '}
+                      <Link to={`/artists/${artist.id}`} className="hover:text-gray-800 hover:underline">
+                        {artist.name}
+                      </Link>
+                    </span>
+                  ))
+                : 'Artiste inconnu'}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   )

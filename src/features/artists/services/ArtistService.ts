@@ -3,6 +3,7 @@ import type { PageResponse } from '../../../core/models/PageResponse'
 import type { ProjectType } from '../../projects/models/ProjectType'
 import type { ProjectSummaryDto } from '../../projects/models/ProjectSummaryDto'
 import type { ArtistDto, CreateArtistDto, UpdateArtistDto } from '../models/ArtistDto'
+import type { ProjectAppearanceDto } from '../models/ProjectAppearanceDto'
 
 export interface SearchArtistsParams {
   page: number
@@ -58,8 +59,8 @@ export class ArtistService {
 
   static async getArtistAppearances(
     params: ArtistAppearancesParams
-  ): Promise<PageResponse<ProjectSummaryDto>> {
-    const response = await api.get<PageResponse<ProjectSummaryDto>>(
+  ): Promise<PageResponse<ProjectAppearanceDto>> {
+    const response = await api.get<PageResponse<ProjectAppearanceDto>>(
       `${this.BASE_URL}/${params.artistId}/appearances`,
       {
         params: {

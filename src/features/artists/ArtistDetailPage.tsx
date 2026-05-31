@@ -3,11 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useArtist } from './hooks/useArtist';
 import { useArtistAppearances } from './hooks/useArtistAppearances';
 import { useArtistProjects } from './hooks/useArtistProjects';
+import ArtistAppearancesTable from './components/ArtistAppearancesTable';
 import ArtistProjectGrid from './components/ArtistProjectGrid';
 import { ArtistTypeLabels } from './models/ArtistType';
 import { ProjectType } from '../projects/models/ProjectType';
 import { getAverageColor, createHeroGradient } from '../../core/utils/imageColor';
 import AppLayout from '../../components/ui/AppLayout';
+
+const APPEARANCES_PAGE_SIZE = 10;
 
 export const ArtistDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -16,7 +19,8 @@ export const ArtistDetailPage = () => {
   const singlesQuery = useArtistProjects(id!, ProjectType.SINGLE);
   const albumsQuery = useArtistProjects(id!, ProjectType.ALBUM);
   const epsQuery = useArtistProjects(id!, ProjectType.EP);
-  const appearancesQuery = useArtistAppearances(id!);
+  const [appearancesPage, setAppearancesPage] = useState(1);
+  const appearancesQuery = useArtistAppearances(id!, appearancesPage, APPEARANCES_PAGE_SIZE);
   const [heroGradient, setHeroGradient] = useState<string>('linear-gradient(to bottom, rgb(83, 83, 83) 0%, rgba(18, 18, 18, 1) 100%)');
 
   useEffect(() => {
@@ -33,6 +37,14 @@ export const ArtistDetailPage = () => {
       window.HSStaticMethods.autoInit(['tabs']);
     }
   }, [artist]);
+
+  useEffect(() => {
+    const totalPages = appearancesQuery.data?.totalPages ?? 0;
+
+    if (totalPages > 0 && appearancesPage > totalPages) {
+      setAppearancesPage(totalPages);
+    }
+  }, [appearancesPage, appearancesQuery.data?.totalPages]);
 
   if (isLoading) {
     return (
@@ -272,11 +284,13 @@ export const ArtistDetailPage = () => {
 
           <div className="mt-12 pt-8 border-t border-gray-200">
             <h2 className="text-2xl font-bold mb-6 text-gray-800">Apparaît sur</h2>
-            <ArtistProjectGrid
-              projects={appearancesQuery.data?.content ?? []}
+            <ArtistAppearancesTable
+              appearances={appearancesQuery.data?.content ?? []}
               isLoading={appearancesQuery.isLoading}
-              emptyTitle="Aucune apparition"
-              emptyDescription="Les projets où cet artiste est en featuring sur au moins un titre apparaîtront ici."
+              page={appearancesPage}
+              pageSize={APPEARANCES_PAGE_SIZE}
+              totalPages={appearancesQuery.data?.totalPages ?? 0}
+              onPageChange={setAppearancesPage}
             />
           </div>
         </div>

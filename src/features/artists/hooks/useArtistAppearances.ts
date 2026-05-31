@@ -2,14 +2,14 @@ import { useQuery } from '@tanstack/react-query'
 
 import { ArtistService } from '../services/ArtistService'
 
-export const useArtistAppearances = (artistId: string) => {
+export const useArtistAppearances = (artistId: string, page: number, size: number) => {
   return useQuery({
-    queryKey: ['artist-appearances', artistId],
+    queryKey: ['artist-appearances', artistId, page, size],
     queryFn: () =>
       ArtistService.getArtistAppearances({
         artistId,
-        page: 0,
-        size: 24,
+        page: page - 1,
+        size,
       }),
     enabled: Boolean(artistId),
   })
