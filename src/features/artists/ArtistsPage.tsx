@@ -46,6 +46,7 @@ export default function ArtistsPage() {
   const [selectedArtist, setSelectedArtist] = useState<ArtistDto | null>(null)
   const [artistToDelete, setArtistToDelete] = useState<ArtistDto | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  const [createFormKey, setCreateFormKey] = useState(0)
 
   const canEdit =
     (user?.roles?.includes('ROLE_ADMIN') || user?.roles?.includes('ROLE_MODO')) ?? false
@@ -65,6 +66,7 @@ export default function ArtistsPage() {
         {
           onSuccess: () => {
             setSelectedArtist(null)
+            setCreateFormKey(key => key + 1)
             const modal = document.getElementById('artist-form-modal')
             if (modal) {
               window.HSOverlay?.close(modal)
@@ -80,6 +82,7 @@ export default function ArtistsPage() {
       createArtist.mutate(artist, {
         onSuccess: () => {
           setSelectedArtist(null)
+          setCreateFormKey(key => key + 1)
           const modal = document.getElementById('artist-form-modal')
           if (modal) {
             window.HSOverlay?.close(modal)
@@ -126,6 +129,7 @@ export default function ArtistsPage() {
     setFormError(null)
     flushSync(() => {
       setSelectedArtist(null)
+      setCreateFormKey(key => key + 1)
     })
     openOverlay('artist-form-modal')
   }
@@ -274,6 +278,7 @@ export default function ArtistsPage() {
       </div>
 
       <ArtistFormModal
+        key={selectedArtist?.id ?? `create-${createFormKey}`}
         modalId="artist-form-modal"
         artist={selectedArtist}
         onSubmit={handleCreateOrUpdate}

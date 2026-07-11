@@ -33,6 +33,8 @@ export default function ArtistFormModal({
 
   const isEditMode = !!artist
 
+  const [spotifyError, setSpotifyError] = useState<string | null>(null)
+
   useEffect(() => {
     if (artist) {
       setFormValues({
@@ -47,6 +49,8 @@ export default function ArtistFormModal({
         photoLink: '',
       })
     }
+
+    setSpotifyError(null)
 
     // Initialize Preline select
     if (window.HSStaticMethods) {
@@ -168,12 +172,12 @@ export default function ArtistFormModal({
                   <label htmlFor="photoLink" className="block text-sm font-medium mb-2">
                     Lien photo
                   </label>
-                  <div className="flex gap-2 items-start">
+                  <div className="flex gap-2 items-center">
                     <input
                       type="url"
                       id="photoLink"
                       name="photoLink"
-                      className="py-2 px-3 block w-full border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
+                      className="py-2 px-3 block min-w-0 flex-1 border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
                       placeholder="https://exemple.com/photo.jpg"
                       value={formValues.photoLink}
                       onChange={e => setFormValues({ ...formValues, photoLink: e.target.value })}
@@ -182,9 +186,11 @@ export default function ArtistFormModal({
                       mode="artist"
                       name={formValues.name}
                       onSuccess={photoUrl => setFormValues(current => ({ ...current, photoLink: photoUrl }))}
+                      onErrorChange={setSpotifyError}
                       disabled={!formValues.name.trim()}
                     />
                   </div>
+                  {spotifyError && <p className="mt-1 text-xs text-red-600">{spotifyError}</p>}
                   {formValues.photoLink && (
                     <img
                       src={formValues.photoLink}

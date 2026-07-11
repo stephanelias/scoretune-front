@@ -42,6 +42,7 @@ export function ProjectFormStepper({
   const [step, setStep] = useState(1)
   const [draft, setDraft] = useState<ProjectDraft>(initialDraft)
   const [stepError, setStepError] = useState<string | null>(null)
+  const [spotifyError, setSpotifyError] = useState<string | null>(null)
 
   const updateDraft = (patch: Partial<ProjectDraft>) => {
     setDraft(current => ({ ...current, ...patch }))
@@ -266,23 +267,25 @@ export function ProjectFormStepper({
                 <label htmlFor="cover-link" className="block text-sm font-medium text-gray-700 mb-1">
                   Lien de la cover (optionnel)
                 </label>
-                <div className="flex gap-2 items-start">
+                <div className="flex gap-2 items-center">
                   <input
                     id="cover-link"
                     type="url"
                     value={draft.coverLink}
                     onChange={event => updateDraft({ coverLink: event.target.value })}
                     placeholder="https://…"
-                    className="py-2 px-3 block w-full border border-gray-200 rounded-lg text-sm focus:border-gray-500 focus:ring-gray-500"
+                    className="py-2 px-3 block min-w-0 flex-1 border border-gray-200 rounded-lg text-sm focus:border-gray-500 focus:ring-gray-500"
                   />
                   <SpotifyLookupButton
                     mode="project"
                     name={draft.name}
                     artists={draft.artists.map(artist => artist.name)}
                     onSuccess={coverUrl => updateDraft({ coverLink: coverUrl })}
+                    onErrorChange={setSpotifyError}
                     disabled={!draft.name.trim()}
                   />
                 </div>
+                {spotifyError && <p className="mt-1 text-xs text-red-600">{spotifyError}</p>}
                 {draft.coverLink && (
                   <img
                     src={draft.coverLink}
