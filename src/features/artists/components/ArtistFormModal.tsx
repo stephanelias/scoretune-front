@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useState } from 'react'
 
 import { ArtistType, ArtistTypeLabels } from '../models/ArtistType'
 import type { ArtistDto, CreateArtistDto, UpdateArtistDto } from '../models/ArtistDto'
+import { SpotifyLookupButton } from '../../spotify/components/SpotifyLookupButton'
 
 interface ArtistFormModalProps {
   modalId: string
@@ -167,15 +168,30 @@ export default function ArtistFormModal({
                   <label htmlFor="photoLink" className="block text-sm font-medium mb-2">
                     Lien photo
                   </label>
-                  <input
-                    type="url"
-                    id="photoLink"
-                    name="photoLink"
-                    className="py-2 px-3 block w-full border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
-                    placeholder="https://exemple.com/photo.jpg"
-                    value={formValues.photoLink}
-                    onChange={e => setFormValues({ ...formValues, photoLink: e.target.value })}
-                  />
+                  <div className="flex gap-2 items-start">
+                    <input
+                      type="url"
+                      id="photoLink"
+                      name="photoLink"
+                      className="py-2 px-3 block w-full border border-gray-200 rounded-lg text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none"
+                      placeholder="https://exemple.com/photo.jpg"
+                      value={formValues.photoLink}
+                      onChange={e => setFormValues({ ...formValues, photoLink: e.target.value })}
+                    />
+                    <SpotifyLookupButton
+                      mode="artist"
+                      name={formValues.name}
+                      onSuccess={photoUrl => setFormValues(current => ({ ...current, photoLink: photoUrl }))}
+                      disabled={!formValues.name.trim()}
+                    />
+                  </div>
+                  {formValues.photoLink && (
+                    <img
+                      src={formValues.photoLink}
+                      alt="Aperçu photo"
+                      className="mt-2 size-16 rounded-lg object-cover border border-gray-200"
+                    />
+                  )}
                 </div>
               </div>
             </div>

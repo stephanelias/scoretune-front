@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
 import { ArtistPicker } from './ArtistPicker'
+import { SpotifyLookupButton } from '../../spotify/components/SpotifyLookupButton'
 import { createEmptyTrack, type ProjectDraft, type TrackDraft } from '../models/ProjectDraft'
 import { ProjectCategory, ProjectCategoryLabels } from '../models/ProjectCategory'
 import { ProjectType, ProjectTypeLabels } from '../models/ProjectType'
@@ -265,14 +266,35 @@ export function ProjectFormStepper({
                 <label htmlFor="cover-link" className="block text-sm font-medium text-gray-700 mb-1">
                   Lien de la cover (optionnel)
                 </label>
-                <input
-                  id="cover-link"
-                  type="url"
-                  value={draft.coverLink}
-                  onChange={event => updateDraft({ coverLink: event.target.value })}
-                  placeholder="https://…"
-                  className="py-2 px-3 block w-full border border-gray-200 rounded-lg text-sm focus:border-gray-500 focus:ring-gray-500"
-                />
+                <div className="flex gap-2 items-start">
+                  <input
+                    id="cover-link"
+                    type="url"
+                    value={draft.coverLink}
+                    onChange={event => updateDraft({ coverLink: event.target.value })}
+                    placeholder="https://…"
+                    className="py-2 px-3 block w-full border border-gray-200 rounded-lg text-sm focus:border-gray-500 focus:ring-gray-500"
+                  />
+                  <SpotifyLookupButton
+                    mode="project"
+                    name={draft.name}
+                    artists={draft.artists.map(artist => artist.name)}
+                    onSuccess={coverUrl => updateDraft({ coverLink: coverUrl })}
+                    disabled={!draft.name.trim()}
+                  />
+                </div>
+                {draft.coverLink && (
+                  <img
+                    src={draft.coverLink}
+                    alt="Aperçu cover"
+                    className="mt-2 size-16 rounded-lg object-cover border border-gray-200"
+                  />
+                )}
+                {draft.artists.length === 0 && (
+                  <p className="mt-1 text-xs text-gray-500">
+                    Ajoutez les artistes à l&apos;étape 2 pour affiner la recherche Spotify.
+                  </p>
+                )}
               </div>
             </section>
           </div>
