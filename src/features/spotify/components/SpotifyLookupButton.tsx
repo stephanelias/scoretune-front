@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 
 import { getApiErrorMessage } from '../../../core/utils/getApiErrorMessage'
-import { SpotifyService } from '../services/SpotifyService'
+import { useSpotifyArtistPhoto, useSpotifyProjectCover } from '../hooks/useSpotifyLookup'
 
 interface SpotifyLookupButtonProps {
   mode: 'artist' | 'project'
@@ -28,54 +28,55 @@ export function SpotifyLookupButton({
   onErrorChange,
   disabled = false,
 }: SpotifyLookupButtonProps) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const artistPhoto = useSpotifyArtistPhoto()
+  const projectCover = useSpotifyProjectCover()
+
+  const mutation = mode === 'artist' ? artistPhoto : projectCover
+  const errorFallback =
+    mode === 'artist'
+      ? 'Impossible de récupérer la photo Spotify.'
+      : 'Impossible de récupérer la cover Spotify.'
 
   const trimmedName = name.trim()
   const trimmedArtists = artists.map(artist => artist.trim()).filter(Boolean)
-  const isDisabled = disabled || isLoading || !trimmedName
+  const isDisabled = disabled || mutation.isPending || !trimmedName
 
   useEffect(() => {
-    onErrorChange?.(error)
-  }, [error, onErrorChange])
+    if (mutation.error) {
+      onErrorChange?.(getApiErrorMessage(mutation.error, errorFallback))
+      return
+    }
+
+    if (!mutation.isPending) {
+      onErrorChange?.(null)
+    }
+  }, [mutation.error, mutation.isPending, onErrorChange, errorFallback])
 
   useEffect(() => {
     return () => onErrorChange?.(null)
   }, [onErrorChange])
 
-  const handleClick = async () => {
-    setError(null)
-    setIsLoading(true)
+  const handleClick = () => {
+    mutation.reset()
 
-    try {
-      const url =
-        mode === 'artist'
-          ? await SpotifyService.getArtistPhoto(trimmedName)
-          : await SpotifyService.getProjectCover(trimmedName, trimmedArtists)
-
-      onSuccess(url)
-    } catch (lookupError) {
-      const fallback =
-        mode === 'artist'
-          ? 'Impossible de récupérer la photo Spotify.'
-          : 'Impossible de récupérer la cover Spotify.'
-
-      setError(getApiErrorMessage(lookupError, fallback))
-    } finally {
-      setIsLoading(false)
+    if (mode === 'artist') {
+      artistPhoto.mutate(trimmedName, { onSuccess })
+      return
     }
+
+    projectCover.mutate({ name: trimmedName, artists: trimmedArtists }, { onSuccess })
   }
 
   return (
     <button
       type="button"
-      onClick={() => void handleClick()}
+      onClick={handleClick}
       disabled={isDisabled}
       title="Rechercher sur Spotify"
       aria-label="Rechercher sur Spotify"
       className="inline-flex shrink-0 items-center justify-center size-7 rounded-full bg-[#1DB954] text-white hover:bg-[#1ed760] focus:outline-none focus:ring-2 focus:ring-[#1DB954] focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none"
     >
-      {isLoading ? (
+      {mutation.isPending ? (
         <span
           className="animate-spin inline-block size-2.5 border-2 border-current border-t-transparent rounded-full"
           role="status"
