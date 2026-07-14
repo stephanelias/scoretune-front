@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import { ArtistTypeBadgeColors, ArtistTypeLabels } from '../models/ArtistType'
+
 import type { ArtistDto } from '../models/ArtistDto'
+import { ArtistTypeBadgeColors, ArtistTypeLabels } from '../models/ArtistType'
 
 interface ArtistCardProps {
   artist: ArtistDto

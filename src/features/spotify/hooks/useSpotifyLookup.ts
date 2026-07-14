@@ -14,3 +14,10 @@ export function useSpotifyProjectCover() {
       SpotifyService.getProjectCover(name, artists),
   })
 }
+
+export function useSpotifyProjectTracklist() {
+  return useMutation({
+    mutationFn: ({ name, artists }: { name: string; artists: string[] }) =>
+      SpotifyService.getProjectTracklist(name, artists),
+  })
+}

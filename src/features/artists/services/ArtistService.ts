@@ -1,7 +1,7 @@
-import { api } from '../../../lib/axios'
 import type { PageResponse } from '../../../core/models/PageResponse'
-import type { ProjectType } from '../../projects/models/ProjectType'
+import { api } from '../../../lib/axios'
 import type { ProjectSummaryDto } from '../../projects/models/ProjectSummaryDto'
+import type { ProjectType } from '../../projects/models/ProjectType'
 import type { ArtistDto, CreateArtistDto, UpdateArtistDto } from '../models/ArtistDto'
 import type { ProjectAppearanceDto } from '../models/ProjectAppearanceDto'
 
