@@ -1,15 +1,25 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { getApiErrorMessage } from '../../../core/utils/getApiErrorMessage'
+import { closeOverlay, openOverlay } from '../../../core/utils/overlay'
 import { ArtistPicker } from './ArtistPicker'
 import { SpotifyLookupButton } from '../../spotify/components/SpotifyLookupButton'
+import {
+  SPOTIFY_TRACKLIST_DRAFT_MODAL_ID,
+  SpotifyTracklistDraftModal,
+} from '../../spotify/components/SpotifyTracklistDraftModal'
+import { useSpotifyProjectTracklist } from '../../spotify/hooks/useSpotifyLookup'
+import type { SpotifyProjectTrackDto } from '../../spotify/models/SpotifyProjectTracklistDto'
 import { createEmptyTrack, type ProjectDraft, type TrackDraft } from '../models/ProjectDraft'
 import { ProjectCategory, ProjectCategoryLabels } from '../models/ProjectCategory'
 import { ProjectType, ProjectTypeLabels } from '../models/ProjectType'
 import { ProjectZone, ProjectZoneLabels } from '../models/ProjectZone'
 import {
   createTracksForType,
+  isTracklistEmpty,
   renumberTracks,
+  spotifyTracksToDraft,
   validateStep1,
   validateStep3,
 } from '../utils/projectForm'
@@ -43,6 +53,13 @@ export function ProjectFormStepper({
   const [draft, setDraft] = useState<ProjectDraft>(initialDraft)
   const [stepError, setStepError] = useState<string | null>(null)
   const [spotifyError, setSpotifyError] = useState<string | null>(null)
+  const [spotifyDraftTracks, setSpotifyDraftTracks] = useState<SpotifyProjectTrackDto[]>([])
+  const [spotifyTracklistError, setSpotifyTracklistError] = useState<string | null>(null)
+
+  const spotifyTracklist = useSpotifyProjectTracklist()
+  const tracklistIsEmpty = isTracklistEmpty(draft.tracks)
+  const canImportFromSpotify =
+    draft.name.trim().length > 0 && draft.artists.length > 0 && tracklistIsEmpty
 
   const updateDraft = (patch: Partial<ProjectDraft>) => {
     setDraft(current => ({ ...current, ...patch }))
@@ -119,6 +136,43 @@ export function ProjectFormStepper({
   }
 
   const isSingle = draft.type === ProjectType.SINGLE
+
+  const handleSpotifyTracklistImport = () => {
+    if (!canImportFromSpotify) return
+
+    setSpotifyTracklistError(null)
+    setSpotifyDraftTracks([])
+    openOverlay(SPOTIFY_TRACKLIST_DRAFT_MODAL_ID)
+
+    spotifyTracklist.mutate(
+      {
+        name: draft.name.trim(),
+        artists: draft.artists.map(artist => artist.name),
+      },
+      {
+        onSuccess: data => setSpotifyDraftTracks(data.tracks),
+        onError: error =>
+          setSpotifyTracklistError(
+            getApiErrorMessage(error, 'Impossible de récupérer la tracklist Spotify.'),
+          ),
+      },
+    )
+  }
+
+  const handleConfirmSpotifyTracklist = () => {
+    if (!tracklistIsEmpty || spotifyDraftTracks.length === 0) return
+
+    updateDraft({
+      tracks: spotifyTracksToDraft(
+        spotifyDraftTracks.map(track => track.name),
+        draft.artists,
+        draft.type,
+      ),
+    })
+    setSpotifyDraftTracks([])
+    setSpotifyTracklistError(null)
+    closeOverlay(SPOTIFY_TRACKLIST_DRAFT_MODAL_ID)
+  }
 
   return (
     <div className="w-full">
@@ -325,18 +379,51 @@ export function ProjectFormStepper({
             style={{ display: step === 3 ? undefined : 'none' }}
           >
             <section className="mx-auto max-w-3xl space-y-6">
-              <div className="flex justify-between items-center">
+              <div className="flex flex-wrap justify-between items-center gap-3">
                 <h2 className="text-lg font-semibold text-gray-800">Titres</h2>
-                {!isSingle && (
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={addTrack}
-                    className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
+                    onClick={handleSpotifyTracklistImport}
+                    disabled={!canImportFromSpotify || spotifyTracklist.isPending}
+                    title="Importer depuis Spotify"
+                    className="inline-flex shrink-0 items-center justify-center size-7 rounded-full bg-[#1DB954] text-white hover:bg-[#1ed760] focus:outline-none focus:ring-2 focus:ring-[#1DB954] focus:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none"
                   >
-                    Ajouter un titre
+                    {spotifyTracklist.isPending ? (
+                      <span
+                        className="animate-spin inline-block size-2.5 border-2 border-current border-t-transparent rounded-full"
+                        role="status"
+                        aria-label="loading"
+                      />
+                    ) : (
+                      <svg className="size-3" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.13-10.56-1.147-.418.122-.84-.179-.84-.66 0-.359.24-.66.54-.779 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.24 1.026zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z" />
+                      </svg>
+                    )}
                   </button>
-                )}
+                  {!isSingle && (
+                    <button
+                      type="button"
+                      onClick={addTrack}
+                      className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
+                    >
+                      Ajouter un titre
+                    </button>
+                  )}
+                </div>
               </div>
+
+              {draft.artists.length === 0 && (
+                <p className="text-xs text-gray-500">
+                  Ajoutez des artistes principaux à l&apos;étape 2 pour importer depuis Spotify.
+                </p>
+              )}
+              {draft.artists.length > 0 && !tracklistIsEmpty && (
+                <p className="text-xs text-gray-500">
+                  La tracklist contient déjà des titres. L&apos;import Spotify n&apos;est disponible
+                  que sur une tracklist vide.
+                </p>
+              )}
 
               {draft.tracks.map((track, index) => (
                 <div
@@ -483,6 +570,14 @@ export function ProjectFormStepper({
           </div>
         </div>
       </div>
+
+      <SpotifyTracklistDraftModal
+        tracks={spotifyDraftTracks}
+        interpreters={draft.artists}
+        isLoading={spotifyTracklist.isPending}
+        error={spotifyTracklistError}
+        onConfirm={handleConfirmSpotifyTracklist}
+      />
     </div>
   )
 }

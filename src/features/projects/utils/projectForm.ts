@@ -43,6 +43,30 @@ export function createTracksForType(type: ProjectType, tracks: TrackDraft[]): Tr
   return renumberTracks(tracks)
 }
 
+export function isTracklistEmpty(tracks: TrackDraft[]): boolean {
+  return tracks.every(
+    track =>
+      !track.name.trim() &&
+      track.interpreters.length === 0 &&
+      track.featurings.length === 0,
+  )
+}
+
+export function spotifyTracksToDraft(
+  trackNames: string[],
+  interpreters: ProjectDraft['artists'],
+  type: ProjectType,
+): TrackDraft[] {
+  const names = type === ProjectType.SINGLE ? trackNames.slice(0, 1) : trackNames
+
+  return names.map((name, index) => ({
+    trackNumber: index + 1,
+    name,
+    interpreters: [...interpreters],
+    featurings: [],
+  }))
+}
+
 export function validateStep1(draft: ProjectDraft): string | null {
   if (!draft.name.trim()) return 'Le nom du projet est requis.'
   if (!draft.releaseDate) return 'La date de sortie est requise.'
