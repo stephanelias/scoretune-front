@@ -53,12 +53,12 @@ function ArtistLinks({
 function TrackRow({ track }: { track: TrackDto }) {
   return (
     <tr>
-      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 tabular-nums">
+      <td className="px-4 py-2.5 whitespace-nowrap text-sm text-gray-500 tabular-nums">
         {track.trackNumber}
       </td>
-      <td className="px-6 py-4 min-w-0">
+      <td className="px-4 py-2.5 min-w-0">
         <p className="text-sm font-medium text-gray-800">{track.name}</p>
-        <p className="mt-1 text-sm text-gray-500">
+        <p className="mt-0.5 text-sm text-gray-500">
           <ArtistLinks artists={track.interpreters} />
           {track.featurings.length > 0 && (
             <>
@@ -266,15 +266,15 @@ export const ProjectDetailPage = () => {
             {sortedTracks.length === 0 ? (
               <p className="text-sm text-gray-600">Aucun titre pour ce projet.</p>
             ) : (
-              <div className="min-w-full">
+              <div className="max-w-5xl mx-auto min-w-0">
                 <div className="overflow-x-auto [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-none [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300">
                   <table className="min-w-full divide-y divide-gray-200">
                     <thead>
                       <tr>
-                        <th scope="col" className="w-24 px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
+                        <th scope="col" className="w-16 px-4 py-2.5 text-start text-xs font-medium text-gray-500 uppercase">
                           #
                         </th>
-                        <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
+                        <th scope="col" className="px-4 py-2.5 text-start text-xs font-medium text-gray-500 uppercase">
                           Titre
                         </th>
                       </tr>
