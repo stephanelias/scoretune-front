@@ -1,15 +1,20 @@
+import type { CustomParamsSerializer } from 'axios'
+
 import { api } from '../../../lib/axios'
 import type { SpotifyArtistPhotoDto } from '../models/SpotifyArtistPhotoDto'
 import type { SpotifyProjectCoverDto } from '../models/SpotifyProjectCoverDto'
 import type { SpotifyProjectTracklistDto } from '../models/SpotifyProjectTracklistDto'
 
-function serializeNameAndArtistsParams(params: { name: string; artists?: string[] }) {
+const serializeNameAndArtistsParams: CustomParamsSerializer = params => {
   const searchParams = new URLSearchParams()
-  searchParams.append('name', params.name)
+
+  if (typeof params.name === 'string') {
+    searchParams.append('name', params.name)
+  }
 
   if (Array.isArray(params.artists)) {
     for (const artist of params.artists) {
-      if (artist) {
+      if (typeof artist === 'string' && artist) {
         searchParams.append('artists', artist)
       }
     }
