@@ -70,18 +70,18 @@ export default function ArtistAppearancesTable({
   }
 
   return (
-    <div className="min-w-full">
+    <div className="max-w-5xl mx-auto min-w-0">
       <div className="border border-gray-200 rounded-lg overflow-x-auto [&::-webkit-scrollbar]:h-2 [&::-webkit-scrollbar-thumb]:rounded-none [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-gray-300">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="w-20 px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
+              <th scope="col" className="w-16 px-4 py-2.5 text-start text-xs font-medium text-gray-500 uppercase">
                 #
               </th>
-              <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
+              <th scope="col" className="px-4 py-2.5 text-start text-xs font-medium text-gray-500 uppercase">
                 Titre
               </th>
-              <th scope="col" className="px-6 py-3 text-start text-xs font-medium text-gray-500 uppercase">
+              <th scope="col" className="px-4 py-2.5 text-start text-xs font-medium text-gray-500 uppercase">
                 Projet
               </th>
             </tr>
@@ -89,22 +89,22 @@ export default function ArtistAppearancesTable({
           <tbody className="divide-y divide-gray-200">
             {appearances.map((appearance, index) => (
               <tr key={appearance.trackId}>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 tabular-nums">
+                <td className="px-4 py-2.5 whitespace-nowrap text-sm text-gray-500 tabular-nums">
                   {(page - 1) * pageSize + index + 1}
                 </td>
-                <td className="px-6 py-4 min-w-80">
-                  <div className="flex items-center gap-3">
+                <td className="px-4 py-2.5 min-w-0">
+                  <div className="flex items-center gap-2.5">
                     <Link to={`/projects/${appearance.projectId}`} className="shrink-0">
                       {appearance.projectCoverLink ? (
                         <img
                           src={appearance.projectCoverLink}
                           alt={appearance.projectName}
-                          className="size-12 rounded-lg object-cover"
+                          className="size-10 rounded-lg object-cover"
                         />
                       ) : (
-                        <div className="size-12 rounded-lg bg-gray-100 flex items-center justify-center">
+                        <div className="size-10 rounded-lg bg-gray-100 flex items-center justify-center">
                           <svg
-                            className="size-6 text-gray-400"
+                            className="size-5 text-gray-400"
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"
                             viewBox="0 0 24 24"
@@ -127,13 +127,13 @@ export default function ArtistAppearancesTable({
                       >
                         {appearance.trackName}
                       </Link>
-                      <p className="mt-1 text-sm text-gray-500 truncate">
+                      <p className="mt-0.5 text-sm text-gray-500 truncate">
                         <AppearanceArtists appearance={appearance} />
                       </p>
                     </div>
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                <td className="px-4 py-2.5 whitespace-nowrap text-sm font-medium text-gray-800">
                   <Link to={`/projects/${appearance.projectId}`} className="hover:underline">
                     {appearance.projectName}
                   </Link>
