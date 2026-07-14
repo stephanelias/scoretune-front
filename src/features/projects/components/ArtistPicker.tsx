@@ -1,13 +1,12 @@
 import { useMemo, useState } from 'react'
 
 import SearchInput from '../../../components/ui/SearchInput'
-import { getApiErrorMessage } from '../../../core/utils/getApiErrorMessage'
 import { useDebouncedValue } from '../../../core/hooks/useDebouncedValue'
+import { getApiErrorMessage } from '../../../core/utils/getApiErrorMessage'
 import { useArtists } from '../../artists/hooks/useArtists'
 import { useCreateArtist } from '../../artists/hooks/useCreateArtist'
 import type { ArtistDto } from '../../artists/models/ArtistDto'
 import { ArtistType } from '../../artists/models/ArtistType'
-
 import type { ArtistSummaryDto } from '../models/ArtistSummaryDto'
 
 function toArtistSummary(artist: ArtistDto): ArtistSummaryDto {

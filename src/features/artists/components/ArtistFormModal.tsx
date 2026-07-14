@@ -1,8 +1,8 @@
 import { type FormEvent, useEffect, useState } from 'react'
 
-import { ArtistType, ArtistTypeLabels } from '../models/ArtistType'
-import type { ArtistDto, CreateArtistDto, UpdateArtistDto } from '../models/ArtistDto'
 import { SpotifyLookupButton } from '../../spotify/components/SpotifyLookupButton'
+import type { ArtistDto, CreateArtistDto, UpdateArtistDto } from '../models/ArtistDto'
+import { ArtistType, ArtistTypeLabels } from '../models/ArtistType'
 
 interface ArtistFormModalProps {
   modalId: string

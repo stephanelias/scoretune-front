@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+
+import AppLayout from '../../components/ui/AppLayout';
+import { getAverageColor, createHeroGradient } from '../../core/utils/imageColor';
+import { ProjectType } from '../projects/models/ProjectType';
+
+import ArtistAppearancesTable from './components/ArtistAppearancesTable';
+import ArtistProjectGrid from './components/ArtistProjectGrid';
 import { useArtist } from './hooks/useArtist';
 import { useArtistAppearances } from './hooks/useArtistAppearances';
 import { useArtistProjects } from './hooks/useArtistProjects';
-import ArtistAppearancesTable from './components/ArtistAppearancesTable';
-import ArtistProjectGrid from './components/ArtistProjectGrid';
 import { ArtistTypeLabels } from './models/ArtistType';
-import { ProjectType } from '../projects/models/ProjectType';
-import { getAverageColor, createHeroGradient } from '../../core/utils/imageColor';
-import AppLayout from '../../components/ui/AppLayout';
+
 
 const APPEARANCES_PAGE_SIZE = 10;
 

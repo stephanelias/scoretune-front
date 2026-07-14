@@ -1,14 +1,14 @@
 import { Route, Routes } from 'react-router-dom'
 
-import ArtistsPage from '../features/artists/ArtistsPage'
 import { ArtistDetailPage } from '../features/artists/ArtistDetailPage'
+import ArtistsPage from '../features/artists/ArtistsPage'
+import LoginPage from '../features/auth/LoginPage'
+import RegisterPage from '../features/auth/RegisterPage'
+import HomePage from '../features/home/HomePage'
 import { ProjectCreatePage } from '../features/projects/ProjectCreatePage'
 import { ProjectDetailPage } from '../features/projects/ProjectDetailPage'
 import { ProjectEditPage } from '../features/projects/ProjectEditPage'
 import ProjectsPage from '../features/projects/ProjectsPage'
-import LoginPage from '../features/auth/LoginPage'
-import RegisterPage from '../features/auth/RegisterPage'
-import HomePage from '../features/home/HomePage'
 
 export const AppRoutes = () => (
   <Routes>

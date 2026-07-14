@@ -1,8 +1,7 @@
 import Modal from '../../../components/ui/Modal'
 import type { ArtistSummaryDto } from '../../projects/models/ArtistSummaryDto'
+import { SPOTIFY_TRACKLIST_DRAFT_MODAL_ID } from '../constants/spotifyTracklistDraftModalId'
 import type { SpotifyProjectTrackDto } from '../models/SpotifyProjectTracklistDto'
-
-const MODAL_ID = 'spotify-tracklist-draft-modal'
 
 interface SpotifyTracklistDraftModalProps {
   tracks: SpotifyProjectTrackDto[]
@@ -23,7 +22,7 @@ export function SpotifyTracklistDraftModal({
 
   return (
     <Modal
-      modalId={MODAL_ID}
+      modalId={SPOTIFY_TRACKLIST_DRAFT_MODAL_ID}
       title="Brouillon Spotify"
       maxWidth="2xl"
       footer={
@@ -31,7 +30,7 @@ export function SpotifyTracklistDraftModal({
           <button
             type="button"
             className="py-2 px-3 inline-flex items-center gap-x-2 text-sm font-medium rounded-lg border border-gray-200 bg-white text-gray-800 shadow-sm hover:bg-gray-50 focus:outline-none focus:bg-gray-50 disabled:opacity-50 disabled:pointer-events-none"
-            data-hs-overlay={`#${MODAL_ID}`}
+            data-hs-overlay={`#${SPOTIFY_TRACKLIST_DRAFT_MODAL_ID}`}
           >
             Annuler
           </button>
@@ -84,5 +83,3 @@ export function SpotifyTracklistDraftModal({
     </Modal>
   )
 }
-
-export { MODAL_ID as SPOTIFY_TRACKLIST_DRAFT_MODAL_ID }

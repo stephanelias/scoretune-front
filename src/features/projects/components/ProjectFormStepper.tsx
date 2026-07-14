@@ -3,16 +3,15 @@ import { Link } from 'react-router-dom'
 
 import { getApiErrorMessage } from '../../../core/utils/getApiErrorMessage'
 import { closeOverlay, openOverlay } from '../../../core/utils/overlay'
-import { ArtistPicker } from './ArtistPicker'
 import { SpotifyLookupButton } from '../../spotify/components/SpotifyLookupButton'
+import { SpotifyTracklistDraftModal } from '../../spotify/components/SpotifyTracklistDraftModal'
 import {
   SPOTIFY_TRACKLIST_DRAFT_MODAL_ID,
-  SpotifyTracklistDraftModal,
-} from '../../spotify/components/SpotifyTracklistDraftModal'
+} from '../../spotify/constants/spotifyTracklistDraftModalId'
 import { useSpotifyProjectTracklist } from '../../spotify/hooks/useSpotifyLookup'
 import type { SpotifyProjectTrackDto } from '../../spotify/models/SpotifyProjectTracklistDto'
-import { createEmptyTrack, type ProjectDraft, type TrackDraft } from '../models/ProjectDraft'
 import { ProjectCategory, ProjectCategoryLabels } from '../models/ProjectCategory'
+import { createEmptyTrack, type ProjectDraft, type TrackDraft } from '../models/ProjectDraft'
 import { ProjectType, ProjectTypeLabels } from '../models/ProjectType'
 import { ProjectZone, ProjectZoneLabels } from '../models/ProjectZone'
 import {
@@ -23,6 +22,8 @@ import {
   validateStep1,
   validateStep3,
 } from '../utils/projectForm'
+
+import { ArtistPicker } from './ArtistPicker'
 
 const STEPS = [
   { number: 1, title: 'Infos projet' },
